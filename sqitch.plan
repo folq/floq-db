@@ -7,3 +7,4 @@ time_tracking_tables [employees_table] 2016-04-25T12:26:33Z Erlend Hamberg <eh@b
 time_tracking_functions [time_tracking_tables] 2016-04-28T18:19:40Z Erlend Hamberg <eh@blankoslo.no> # Creates time tracking functions
 anon_role 2016-04-29T13:15:17Z Erlend Hamberg <eh@blankoslo.no> # Creates an anonymous role
 hours_export_function 2016-05-12T17:03:22Z Erlend Hamberg <eh@blankoslo.no> # Add function allowing exporting hours per employee between two dates
+holidays_table 2016-05-27T14:48:40Z Erlend Hamberg <eh@blankoslo.no> # Add table for tracking holidays
