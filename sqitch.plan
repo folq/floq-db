@@ -9,3 +9,4 @@ anon_role 2016-04-29T13:15:17Z Erlend Hamberg <eh@blankoslo.no> # Creates an ano
 hours_export_function 2016-05-12T17:03:22Z Erlend Hamberg <eh@blankoslo.no> # Add function allowing exporting hours per employee between two dates
 holidays_table 2016-05-27T14:48:40Z Erlend Hamberg <eh@blankoslo.no> # Add table for tracking holidays
 norwegian_holidays_to_2018 [holidays_table] 2016-05-27T15:05:25Z Erlend Hamberg <eh@blankoslo.no> # Add Norwegian holidays for 2016–2018
+make_billable_nonnullable [time_tracking_tables] 2016-06-23T11:09:25Z Erlend Hamberg <eh@blankoslo.no> # Make `billabl` field non-nullable
