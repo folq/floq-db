@@ -11,3 +11,4 @@ holidays_table 2016-05-27T14:48:40Z Erlend Hamberg <eh@blankoslo.no> # Add table
 norwegian_holidays_to_2018 [holidays_table] 2016-05-27T15:05:25Z Erlend Hamberg <eh@blankoslo.no> # Add Norwegian holidays for 2016–2018
 make_billable_nonnullable [time_tracking_tables] 2016-06-23T11:09:25Z Erlend Hamberg <eh@blankoslo.no> # Make `billabl` field non-nullable
 change_projects_id_to_text 2016-06-23T11:38:28Z John Andre Hestad <jah@blankoslo.no> # In the table: 'projects', column 'id' change from int to text. To support custom project codes
+add_cascade_on_update_to_time_entry_table 2016-06-23T14:00:10Z John Andre Hestad <jah@blankoslo.no> # In the table: 'time_entry', column 'project' add cascade on update to constraint.
