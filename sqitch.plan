@@ -15,3 +15,4 @@ add_cascade_on_update_to_time_entry_table 2016-06-23T14:00:10Z John Andre Hestad
 update_projects_function [time_tracking_functions] 2016-06-27T11:01:29Z Erlend Hamberg <eh@blankoslo.no> # Update function to relfect project id type change
 expand_billable_field 2016-06-29T09:05:47Z Erlend Hamberg <eh@blankoslo.no> # Make billable field an enum of (billable, nonbillable, unavailable)
 time_tracking_status_function 2016-06-30T07:17:05Z Erlend Hamberg <eh@blankoslo.no> # Add function for calculating time tracking status
+staffing_table [employees_table time_tracking_tables change_projects_id_to_text] 2016-06-30T11:16:17Z Magne Davidsen <magne.davidsen@gmail.com> # Create staffing table
