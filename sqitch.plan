@@ -17,3 +17,4 @@ expand_billable_field 2016-06-29T09:05:47Z Erlend Hamberg <eh@blankoslo.no> # Ma
 time_tracking_status_function 2016-06-30T07:17:05Z Erlend Hamberg <eh@blankoslo.no> # Add function for calculating time tracking status
 staffing_table [employees_table time_tracking_tables change_projects_id_to_text] 2016-06-30T11:16:17Z Magne Davidsen <magne.davidsen@gmail.com> # Create staffing table
 add_unique_to_name_in_customer_table 2016-07-06T08:42:49Z John Andre Hestad <jah@blankoslo.no> # In the table: 'customer', column 'name' add unique constraint.
+add_function_add_days_to_week 2016-07-19T11:18:41Z John Andre Hestad <jah@blankoslo.no> # In the table: 'staffing', the function inserts new rows based on number of worked days in a week.
