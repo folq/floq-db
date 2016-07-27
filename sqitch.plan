@@ -20,3 +20,4 @@ add_unique_to_name_in_customer_table 2016-07-06T08:42:49Z John Andre Hestad <jah
 add_function_add_days_to_week 2016-07-19T11:18:41Z John Andre Hestad <jah@blankoslo.no> # In the table: 'staffing', the function inserts new rows based on number of worked days in a week.
 add_function_remove_days_from_week 2016-07-19T14:37:16Z John Andre Hestad <jah@blankoslo.no> # In the table: 'staffing', the function removes rows based on employee, project and number of worked days in a week.
 update_timetracking_status_function 2016-07-26T14:21:14Z Erlend Hamberg <eh@blankoslo.no> # Take start and termination date into account for time tracking status
+accumulated_overtime 2016-07-26T12:25:15Z Magne Davidsen <magne.davidsen@gmail.com> # Add functions to accumulate all overtime per employee
