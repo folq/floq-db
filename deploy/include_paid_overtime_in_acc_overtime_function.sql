@@ -12,7 +12,7 @@ declare
 BEGIN
   termination_date := (select employees.termination_date from employees where id = employee_id);
   date_of_employment := (select employees.date_of_employment from employees where id = employee_id);
-  total_paid_overtime := (select sum(minutes)/60 from paid_overtime WHERE employee = employee_id);
+  total_paid_overtime := (select coalesce(sum(minutes)/60,0) from paid_overtime WHERE employee = employee_id);
 
   if end_date > termination_date then
       raise exception 'end date after employee termination date';
