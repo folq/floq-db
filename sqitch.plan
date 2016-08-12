@@ -28,3 +28,4 @@ remove_rounding_in_overtime_acc 2016-08-05T07:48:52Z Magne Davidsen <magne.david
 correct_exception_in_acc_overtime 2016-08-08T07:23:13Z Magne Davidsen <magne.davidsen@gmail.com> # Raise correct exception in accumulated overtime function
 add_read_only_function_worked_days_per_week_v2 2016-08-09T14:11:39Z John Andre Hestad <jah@blankoslo.no> # Now returning projects as well. Used in view.
 add_read_only_function_worked_days_per_week_v3 2016-08-09T14:11:39Z John Andre Hestad <jah@blankoslo.no> # Using startOfWeek (date) instead of year/week-number
+add_function_add_days_to_week_v2 2016-08-12T13:22:41Z John Andre Hestad <jah@blankoslo.no> # Use startOfWeek (date) instead of year/week-number
