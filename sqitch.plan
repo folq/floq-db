@@ -30,3 +30,4 @@ add_read_only_function_worked_days_per_week_v2 2016-08-09T14:11:39Z John Andre H
 add_read_only_function_worked_days_per_week_v3 2016-08-09T14:11:39Z John Andre Hestad <jah@blankoslo.no> # Using startOfWeek (date) instead of year/week-number
 add_function_add_days_to_week_v2 2016-08-12T13:22:41Z John Andre Hestad <jah@blankoslo.no> # Use startOfWeek (date) instead of year/week-number
 add_function_remove_days_from_week_v2 2016-08-12T13:25:16Z John Andre Hestad <jah@blankoslo.no> # Use startOfWeek (date) instead of year/week-number
+add_function_remove_days_from_week_v3 2016-08-12T13:35:16Z John Andre Hestad <jah@blankoslo.no> # Fix subtract to addition bug
