@@ -6,8 +6,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE expense (
   id TEXT PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer INTEGER REFERENCES customer(id),
-  project INTEGER REFERENCES project(id),
+  customer INTEGER REFERENCES customers(id),
+  project INTEGER REFERENCES projects(id),
   date DATE NOT NULL,
   amount MONEY NOT NULL,
   comment TEXT
