@@ -37,3 +37,4 @@ add_expense_table 2016-08-12T13:24:45Z Stefan Andreas Engelien <stefanengelien@S
 alter_table_expense_remove_customer_and_set_project_not_null 2016-09-01T16:28:06Z John Andre Hestad <jah@blankoslo.no> # Want to treat expense/invoice with respect to customer in the same way. Making project not null in both tables, and remove employee col.
 alter_table_customers_change_id_to_customer_code 2016-09-07T16:34:03Z John Andre Hestad <jah@blankoslo.no> # customer-table: change id col from int to text and let it represent a customer code. Preferably 3 letters
 add_hours_per_project_function 2016-09-02T09:11:46Z Stefan Andreas Engelien <stefanengelien@Stefans-MBP> # Add hours_per_project function
+write_off_table 2016-09-12T16:40:00Z John Andre Hestad <jah@blankoslo.no> # Create a write-off table to represent billable hours that shall not be invoiced.
