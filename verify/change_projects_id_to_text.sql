@@ -2,12 +2,12 @@
 
 BEGIN;
 
-INSERT INTO projects
-  (id, name, billable, customer)
-  values ('someRandomTextAsID','rollbackName',false, 1);
+  select id, name, billable, customer
+    from projects
+    where FALSE;
 
-INSERT INTO time_entry
-  (employee, creator, minutes, project, date)
-  values (1, 1, 30, 'someRandomTextAsID', '01-01-2016');
+  select 1/count(*)
+    from information_schema.columns
+    where table_name = 'projects' and column_name = 'id' and data_type='text';
 
 ROLLBACK;
