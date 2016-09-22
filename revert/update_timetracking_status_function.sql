@@ -57,6 +57,6 @@ end
 $$
 language plpgsql immutable strict;
 
-drop function business_hours(date, date, float8)
+drop function business_hours(date, date, float8);
 
 COMMIT;
