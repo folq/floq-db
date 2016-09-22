@@ -2,7 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS accumulated_hours_for_employee(int, date, date);
-DROP FUNCTION IF EXISTS accumulated_overtime_for_employee(int, date);
+-- Fallbacking to next revert statement in sqitch entry: accumulated_overtime
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
--- XXX Add DDLs here.
+-- Fallbacking to next revert statement in sqitch entry: accumulated_overtime
 
 COMMIT;
