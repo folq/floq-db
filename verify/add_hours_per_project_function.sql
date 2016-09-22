@@ -8,19 +8,19 @@ values (191919195,'Jacob','Aal','Federator', '91919191','some@email.com', 'male'
 
 INSERT INTO customers
 (id, name)
-values (91828374,'I am not a customer!');
+values (91828374,'customersName');
 
 INSERT INTO projects
 (id, name, billable, customer)
-values ('someRandomTextAsID956','rollbackName','billable', 91828374);
+values ('projectsId','projectsName','billable', 91828374);
 
 INSERT INTO time_entry
 (employee, creator, minutes, project, date)
-values (1, 1, 30, 'someRandomTextAsID956', '2016-08-01');
+values (191919195, 191919195, 30, 'projectsId', '2016-08-01');
 
 INSERT INTO time_entry
 (employee, creator, minutes, project, date)
-values (1, 1, 60, 'someRandomTextAsID956', '2016-08-02');
+values (191919195, 191919195, 60, 'projectsId', '2016-08-02');
 
 select 1/count(h.hours) from hours_per_project('2016-08-01', '2016-08-31') h;
 
