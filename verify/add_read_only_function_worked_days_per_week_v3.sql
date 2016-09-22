@@ -16,8 +16,8 @@ INSERT INTO projects
 
 INSERT INTO staffing
   (employee, project, date)
-  values  (191919195, 'someRandomTextAsID956', '2029-8-8');
+  values  (191919195, 'someRandomTextAsID956', '2029-08-08');
 
-select 1/count(w.days) from worked_days_per_week('2016-08-08', 1) w;
+select 1/count(w.days) from worked_days_per_week('2029-08-08', 1) w;
 
 ROLLBACK;
