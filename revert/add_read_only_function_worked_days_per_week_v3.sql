@@ -4,29 +4,40 @@ BEGIN;
 
 DROP FUNCTION IF EXISTS worked_days_per_week(date,integer);
 
-CREATE OR REPLACE FUNCTION remove_days_from_week(
- IN in_employee INTEGER,
- IN in_project TEXT,
- IN in_days INTEGER,
- IN in_start_of_week DATE DEFAULT CURRENT_DATE + 1 - (EXTRACT(DOW FROM CURRENT_DATE))::integer
+CREATE OR REPLACE FUNCTION worked_days_per_week(
+ IN in_week INTEGER,
+ IN in_number_of_weeks INTEGER default 5,
+ IN in_year INTEGER DEFAULT date_part('year', CURRENT_DATE)
 )
-RETURNS setof DATE AS $$
-DECLARE
- removed_days integer := 0;
+RETURNS TABLE(
+	employee integer,
+  projects text[],
+	week integer,
+	days integer
+) AS $$
 BEGIN
- IF (in_days < 1 OR in_days > 7) then RAISE numeric_value_out_of_range USING MESSAGE = 'days-parameter has to be within: [1,7] but was ' || in_days; END IF;
- FOR i IN REVERSE 6..0 LOOP
-   BEGIN
-     IF EXISTS (select 1 from staffing where employee=in_employee and project = in_project and date=in_start_of_week-i) THEN
-       delete from staffing where employee = in_employee AND date = in_start_of_week-i;
-       IF NOT FOUND then RAISE exception 'Unknown error when deleting employee=%, date=%', in_employee, in_start_of_week - i; END IF;
-       removed_days = removed_days + 1;
-       return next in_start_of_week - i;
-       IF (removed_days = in_days) then return; END IF;
-     END IF;
-   END;
- END LOOP;
- RAISE unique_violation USING MESSAGE = 'The requested week only has ' || removed_days || ' staffed days';
+ IF (in_week < 0 OR in_week > 53) then RAISE numeric_value_out_of_range USING MESSAGE = 'week-parameter has to be within: [0,53] but was ' || in_week; END IF;
+ IF (in_number_of_weeks < 1) then RAISE numeric_value_out_of_range USING MESSAGE = 'number_of_weeks-parameter has to be greater than 0, but was ' || in_number_of_weeks; END IF;
+return query(SELECT
+        e.id as employee,
+        array_agg(s.project) as projects,
+        current_week as week,
+        count(s.date)::integer as days
+    FROM
+        generate_series(in_week, in_week + in_number_of_weeks - 1) as current_week
+    LEFT JOIN
+        staffing s
+            on s.date between week_to_date(in_year, current_week) AND (week_to_date(in_year, current_week) + 6)
+    JOIN
+        employees e
+            on s.employee = e.id
+    group by
+        e.id,
+        week
+    order by
+        e.id,
+        week
+);
 END;
 $$ LANGUAGE plpgsql;
 
