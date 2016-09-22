@@ -14,7 +14,7 @@ BEGIN
     insert into invoice_balance(project, date) values ('p_id3','2000-01-01');
     insert into invoice_balance(project, date) values ('p_id3','2000-01-01');
     EXCEPTION WHEN unique_violation THEN
-      RAISE NOTICE 'SUCCESS: Verified that duplicate name gave us unique_violation';
+      -- SUCCESS: Verified that duplicate name gave us unique_violation
       RETURN;
   END;
   RAISE EXCEPTION 'ERROR: Still possible to insert duplicate names.';
