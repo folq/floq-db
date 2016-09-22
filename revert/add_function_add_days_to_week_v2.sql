@@ -3,7 +3,6 @@
 BEGIN;
 
 DROP FUNCTION IF EXISTS add_days_to_week(integer,text,integer,date);
-DROP FUNCTION IF EXISTS week_to_date(integer,integer,integer);
 
 CREATE OR REPLACE FUNCTION week_to_date(
   IN in_year INTEGER,
