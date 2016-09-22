@@ -2,6 +2,6 @@
 
 BEGIN;
 
-drop function projects_for_employee_for_date(integer, date);
+-- Fallthrough to time_tracking_functions for dropping function: projects_for_employee_for_date
 
 COMMIT;
