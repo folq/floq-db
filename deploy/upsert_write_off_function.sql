@@ -4,7 +4,7 @@
 BEGIN;
 
 -- This function drops all write_off rows connected to the matched invoice_balance
--- The database-model accepts many-to-one, but not the current view.
+-- The database-model accepts many-to-one, but not the current MVP (sep 2016).
 CREATE OR REPLACE FUNCTION upsert_write_off(
   IN in_project TEXT,
   IN in_date DATE,
@@ -13,6 +13,7 @@ CREATE OR REPLACE FUNCTION upsert_write_off(
 RETURNS TEXT AS $$
   DECLARE
     invoice_balance_id TEXT;
+    write_off_id TEXT;
   BEGIN
     BEGIN
       INSERT INTO invoice_balance (project, date) values(in_project, in_date) RETURNING id INTO invoice_balance_id;
@@ -20,8 +21,8 @@ RETURNS TEXT AS $$
           SELECT id from invoice_balance where project=in_project and date=in_date INTO invoice_balance_id;
     END;
     DELETE FROM write_off where invoice_balance=invoice_balance_id;
-    INSERT INTO write_off(invoice_balance, minutes) values(invoice_balance_id, in_minutes);
-    return invoice_balance_id;
+    INSERT INTO write_off(invoice_balance, minutes) values(invoice_balance_id, in_minutes) RETURNING id INTO write_off_id;
+    return write_off_id;
   END;
 $$ LANGUAGE plpgsql;
 
