@@ -46,3 +46,4 @@ upsert_write_off_function [balance_tables] 2016-09-19T11:23:13Z John Andre Hesta
 upsert_expense_function [balance_tables] 2016-09-22T16:50:03Z John Andre Hestad <jah@blankoslo.no> # Function to update/insert to expense. This can be rewritten to a backend later if preferred.
 upsert_invoice_balance_function [alter_invoice_table_money_to_numeric] 2016-09-23T08:23:53Z John Andre Hestad <jah@blankoslo.no> # Inserts or updates invoice_balance
 alter_table_invoice_balance_add_col_status [balance_tables] 2016-09-28T12:58:43Z John Andre Hestad <jah@blankoslo.no> # Will also create an enum invoice_status which dictates work flow
+upsert_invoice_status_function [alter_table_invoice_balance_add_col_status] 2016-09-28T13:46:46Z John Andre Hestad <jah@blankoslo.no> # Postgrest still missing upsert and I refuse to add that logic in the js-client-layer.
