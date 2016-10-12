@@ -51,3 +51,4 @@ update_hours_per_project_function_add_invoice_status [alter_table_invoice_balanc
 alter_table_project_add_column_responsible [time_tracking_tables employees_table] 2016-10-03T17:09:25Z John Andre Hestad <jah@blankoslo.no> # Connect project table to employees table via the new column "responsible" which is a foreign key
 table_timelock [employees_table] 2016-10-06T09:15:40Z John Andre Hestad <jah@blankoslo.no> # The commit_date column specifies which date and all previous date you have comitted / are done registering hours.
 update_timetracking_status_function_add_commit_date [update_timetracking_status_function table_timelock] 2016-10-10T13:52:35Z John Andre Hestad <jah@blankoslo.no> # Add commit_date as return value.
+alter_table_project_add_column_active [time_tracking_tables] 2016-10-11T12:07:38Z John Andre Hestad <jah@blankoslo.no> # Add possibility to set a project to active/not-active state. Default will be true.
