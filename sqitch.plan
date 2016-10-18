@@ -52,3 +52,4 @@ alter_table_project_add_column_responsible [time_tracking_tables employees_table
 table_timelock [employees_table] 2016-10-06T09:15:40Z John Andre Hestad <jah@blankoslo.no> # The commit_date column specifies which date and all previous date you have comitted / are done registering hours.
 update_timetracking_status_function_add_commit_date [update_timetracking_status_function table_timelock] 2016-10-10T13:52:35Z John Andre Hestad <jah@blankoslo.no> # Add commit_date as return value.
 alter_table_project_add_column_active [time_tracking_tables] 2016-10-11T12:07:38Z John Andre Hestad <jah@blankoslo.no> # Add possibility to set a project to active/not-active state. Default will be true.
+update_timetracking_status_function_alter_commit_date [update_timetracking_status_function_add_commit_date] 2016-10-18T12:48:38Z John Andre Hestad <jah@blankoslo.no> # Change commit_date to last edited date and last edited.
