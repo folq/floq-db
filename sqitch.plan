@@ -55,3 +55,4 @@ alter_table_project_add_column_active [time_tracking_tables] 2016-10-11T12:07:38
 update_timetracking_status_function_alter_commit_date [update_timetracking_status_function_add_commit_date] 2016-10-18T12:48:38Z John Andre Hestad <jah@blankoslo.no> # Change commit_date to last edited date and last edited.
 table_remove_timelock [table_timelock] 2016-10-19T09:00:01Z John Andre Hestad <jah@blankoslo.no> # It was decided to not use this table anymore. Locking will be solved in other ways.
 alter_table_staffing_add_cascade_on_update [staffing_table] 2016-10-24T09:16:34Z John Andre Hestad <jah@blankoslo.no> # Staffing table is missing update on cascade, making it hard to edit project IDs
+ranked_tables [employees_table] 2016-12-15T10:29:07Z Yu He <yu.he@blankoslo.no> # Add Blank-Rank tables
