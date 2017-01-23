@@ -22,5 +22,5 @@ esac
 for f in *.sql
 do
  echo "deploying $f to $HOST"
- psql -f $f -h $HOST -d floq -U root
+ psql -f "$f" -h $HOST -d floq -U root
 done
