@@ -1,0 +1,60 @@
+%syntax-version=1.0.0
+%project=floq
+%uri=https://github.com/blankoslo/floq-migrations/
+
+employees_table 2016-04-25T12:15:19Z Erlend Hamberg <eh@blankoslo.no> # Add employees table
+time_tracking_tables [employees_table] 2016-04-25T12:26:33Z Erlend Hamberg <eh@blankoslo.no> # Creates time tracking/project tables
+# time_tracking_functions [time_tracking_tables] 2016-04-28T18:19:40Z Erlend Hamberg <eh@blankoslo.no> # Creates time tracking functions
+anon_role 2016-04-29T13:15:17Z Erlend Hamberg <eh@blankoslo.no> # Creates an anonymous role
+# hours_export_function 2016-05-12T17:03:22Z Erlend Hamberg <eh@blankoslo.no> # Add function allowing exporting hours per employee between two dates
+holidays_table 2016-05-27T14:48:40Z Erlend Hamberg <eh@blankoslo.no> # Add table for tracking holidays
+norwegian_holidays_to_2018 [holidays_table] 2016-05-27T15:05:25Z Erlend Hamberg <eh@blankoslo.no> # Add Norwegian holidays for 2016–2018
+make_billable_nonnullable [time_tracking_tables] 2016-06-23T11:09:25Z Erlend Hamberg <eh@blankoslo.no> # Make `billabl` field non-nullable
+change_projects_id_to_text 2016-06-23T11:38:28Z John Andre Hestad <jah@blankoslo.no> # In the table: 'projects', column 'id' change from int to text. To support custom project codes
+add_cascade_on_update_to_time_entry_table 2016-06-23T14:00:10Z John Andre Hestad <jah@blankoslo.no> # In the table: 'time_entry', column 'project' add cascade on update to constraint.
+# update_projects_function [time_tracking_functions] 2016-06-27T11:01:29Z Erlend Hamberg <eh@blankoslo.no> # Update function to relfect project id type change
+expand_billable_field 2016-06-29T09:05:47Z Erlend Hamberg <eh@blankoslo.no> # Make billable field an enum of (billable, nonbillable, unavailable)
+# time_tracking_status_function 2016-06-30T07:17:05Z Erlend Hamberg <eh@blankoslo.no> # Add function for calculating time tracking status
+staffing_table [employees_table time_tracking_tables change_projects_id_to_text] 2016-06-30T11:16:17Z Magne Davidsen <magne.davidsen@gmail.com> # Create staffing table
+add_unique_to_name_in_customer_table 2016-07-06T08:42:49Z John Andre Hestad <jah@blankoslo.no> # In the table: 'customer', column 'name' add unique constraint.
+# add_function_add_days_to_week 2016-07-19T11:18:41Z John Andre Hestad <jah@blankoslo.no> # In the table: 'staffing', the function inserts new rows based on number of worked days in a week.
+# add_function_remove_days_from_week 2016-07-19T14:37:16Z John Andre Hestad <jah@blankoslo.no> # In the table: 'staffing', the function removes rows based on employee, project and number of worked days in a week.
+# update_timetracking_status_function 2016-07-26T14:21:14Z Erlend Hamberg <eh@blankoslo.no> # Take start and termination date into account for time tracking status
+# accumulated_overtime 2016-07-26T12:25:15Z Magne Davidsen <magne.davidsen@gmail.com> # Add functions to accumulate all overtime per employee
+# add_read_only_function_worked_days_per_week 2016-08-01T13:27:42Z John Andre Hestad <jah@blankoslo.no> # Staffing/employees - Send in week/number_of_weeks/year and for all employees get days worked per week
+paid_overtime_table 2016-08-04T15:33:45Z Magne Davidsen <magne.davidsen@gmail.com> # Add a table to track overtime that has been paid out
+# include_paid_overtime_in_acc_overtime_function 2016-08-04T15:43:24Z Magne Davidsen <magne.davidsen@gmail.com> # Include the paid overtime in the accumulated overtime functino
+# remove_rounding_in_overtime_acc 2016-08-05T07:48:52Z Magne Davidsen <magne.davidsen@gmail.com> # Replace the overtime functions with versions that does not round
+# correct_exception_in_acc_overtime 2016-08-08T07:23:13Z Magne Davidsen <magne.davidsen@gmail.com> # Raise correct exception in accumulated overtime function
+# add_read_only_function_worked_days_per_week_v2 2016-08-09T14:11:39Z John Andre Hestad <jah@blankoslo.no> # Now returning projects as well. Used in view.
+# add_read_only_function_worked_days_per_week_v3 2016-08-09T14:11:39Z John Andre Hestad <jah@blankoslo.no> # Using startOfWeek (date) instead of year/week-number
+# add_function_add_days_to_week_v2 2016-08-12T13:22:41Z John Andre Hestad <jah@blankoslo.no> # Use startOfWeek (date) instead of year/week-number
+# add_function_remove_days_from_week_v2 2016-08-12T13:25:16Z John Andre Hestad <jah@blankoslo.no> # Use startOfWeek (date) instead of year/week-number
+# add_function_remove_days_from_week_v3 2016-08-12T13:35:16Z John Andre Hestad <jah@blankoslo.no> # Fix subtract to addition bug
+# add_read_only_function_employee_worked_days_in_week 2016-08-16T12:18:00Z John Andre Hestad <jah@blankoslo.no> # Create function employee_worked_days_in_week. Find how many days one specific employee has worked per week, where week_span is dynamic.
+add_invoice_table 2016-08-12T13:24:10Z Stefan Andreas Engelien <stefanengelien@Stefans-MBP> # Add a new invoice table
+add_expense_table 2016-08-12T13:24:45Z Stefan Andreas Engelien <stefanengelien@Stefans-MBP> # Add a new expense table
+alter_table_expense_remove_customer_and_set_project_not_null 2016-09-01T16:28:06Z John Andre Hestad <jah@blankoslo.no> # Want to treat expense/invoice with respect to customer in the same way. Making project not null in both tables, and remove employee col.
+alter_table_customers_change_id_to_customer_code 2016-09-07T16:34:03Z John Andre Hestad <jah@blankoslo.no> # customer-table: change id col from int to text and let it represent a customer code. Preferably 3 letters
+# add_hours_per_project_function 2016-09-02T09:11:46Z Stefan Andreas Engelien <stefanengelien@Stefans-MBP> # Add hours_per_project function
+write_off_table 2016-09-12T16:40:00Z John Andre Hestad <jah@blankoslo.no> # Create a write-off table to represent billable hours that shall not be invoiced.
+balance_tables 2016-09-14T10:25:41Z John Andre Hestad <jah@blankoslo.no> # Create tables used in floq-balance. Mainly write_off, expense and invoice. The write_off table already existing will be dropped because of heavy redesign.
+alter_invoice_table_money_to_numeric 2016-09-15T11:31:49Z John Andre Hestad <jah@blankoslo.no> # I missed a money type on the last commit. Should be numeric.
+# update_hours_per_project_function 2016-09-16T12:02:19Z John Andre Hestad <jah@blankoslo.no> # Update add_hours_per_project_function making it select data from balance-tables
+alter_table_invoice_balance_extend_date_contraint 2016-09-16T13:26:23Z John Andre Hestad <jah@blankoslo.no> # Update invoice_balance table, the invoicedate constraint needs to be unique on date+project.
+# upsert_write_off_function [balance_tables] 2016-09-19T11:23:13Z John Andre Hestad <jah@blankoslo.no> # Function to update/insert to write_off. This can be rewritten to a backend later if preferred.
+# upsert_expense_function [balance_tables] 2016-09-22T16:50:03Z John Andre Hestad <jah@blankoslo.no> # Function to update/insert to expense. This can be rewritten to a backend later if preferred.
+# upsert_invoice_balance_function [alter_invoice_table_money_to_numeric] 2016-09-23T08:23:53Z John Andre Hestad <jah@blankoslo.no> # Inserts or updates invoice_balance
+alter_table_invoice_balance_add_col_status [balance_tables] 2016-09-28T12:58:43Z John Andre Hestad <jah@blankoslo.no> # Will also create an enum invoice_status which dictates work flow
+# upsert_invoice_status_function [alter_table_invoice_balance_add_col_status] 2016-09-28T13:46:46Z John Andre Hestad <jah@blankoslo.no> # Postgrest still missing upsert and I refuse to add that logic in the js-client-layer.
+# update_hours_per_project_function_add_invoice_status [alter_table_invoice_balance_add_col_status] 2016-09-28T15:35:10Z John Andre Hestad <jah@blankoslo.no> # Update hours_per_project function with invoice status. Now returning minutes instead of hours, since we are using this data to upsert.
+alter_table_project_add_column_responsible [time_tracking_tables employees_table] 2016-10-03T17:09:25Z John Andre Hestad <jah@blankoslo.no> # Connect project table to employees table via the new column "responsible" which is a foreign key
+table_timelock [employees_table] 2016-10-06T09:15:40Z John Andre Hestad <jah@blankoslo.no> # The commit_date column specifies which date and all previous date you have comitted / are done registering hours.
+# update_timetracking_status_function_add_commit_date [update_timetracking_status_function table_timelock] 2016-10-10T13:52:35Z John Andre Hestad <jah@blankoslo.no> # Add commit_date as return value.
+alter_table_project_add_column_active [time_tracking_tables] 2016-10-11T12:07:38Z John Andre Hestad <jah@blankoslo.no> # Add possibility to set a project to active/not-active state. Default will be true.
+# update_timetracking_status_function_alter_commit_date [update_timetracking_status_function_add_commit_date] 2016-10-18T12:48:38Z John Andre Hestad <jah@blankoslo.no> # Change commit_date to last edited date and last edited.
+table_remove_timelock [table_timelock] 2016-10-19T09:00:01Z John Andre Hestad <jah@blankoslo.no> # It was decided to not use this table anymore. Locking will be solved in other ways.
+alter_table_staffing_add_cascade_on_update [staffing_table] 2016-10-24T09:16:34Z John Andre Hestad <jah@blankoslo.no> # Staffing table is missing update on cascade, making it hard to edit project IDs
+ranked_tables [employees_table] 2016-12-15T10:29:07Z Yu He <yu.he@blankoslo.no> # Add Blank-Rank tables
+# absence_view [employees_table norwegian_holidays_to_2018 staffing_table] 2016-12-19T14:56:47Z Yu He <yu.he@blankoslo.no> # Add absence table
+# update_timetracking_status_function_return_email 2017-01-02T11:01:16Z Erlend Hamberg <eh@blankoslo.no> # Return email address as part of time tracking status
