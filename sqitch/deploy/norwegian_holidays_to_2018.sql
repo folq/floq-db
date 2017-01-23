@@ -7,8 +7,16 @@ BEGIN;
 INSERT INTO holidays (date, name) VALUES ('2016-12-24', 'Julaften');
 INSERT INTO holidays (date, name) VALUES ('2016-12-31', 'Nyttårsaften');
 INSERT INTO holidays (date, name) VALUES ('2017-12-24', 'Julaften');
+INSERT INTO holidays (date, name) VALUES ('2017-12-27', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2017-12-28', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2017-12-29', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2017-12-30', 'Julefri');
 INSERT INTO holidays (date, name) VALUES ('2017-12-31', 'Nyttårsaften');
 INSERT INTO holidays (date, name) VALUES ('2018-12-24', 'Julaften');
+INSERT INTO holidays (date, name) VALUES ('2018-12-27', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2018-12-28', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2018-12-29', 'Julefri');
+INSERT INTO holidays (date, name) VALUES ('2018-12-30', 'Julefri');
 INSERT INTO holidays (date, name) VALUES ('2018-12-31', 'Nyttårsaften');
 
 -- “real” holidays
