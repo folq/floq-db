@@ -30,8 +30,8 @@ INSERT INTO holidays (date, name) VALUES ('2016-05-05', 'Kristi himmelfartsdag')
 INSERT INTO holidays (date, name) VALUES ('2016-05-15', '1. pinsedag');
 INSERT INTO holidays (date, name) VALUES ('2016-05-16', '2. pinsedag');
 INSERT INTO holidays (date, name) VALUES ('2016-05-17', 'Grunnlovsdag');
-INSERT INTO holidays (date, name) VALUES ('2016-12-26', '1. juledag');
-INSERT INTO holidays (date, name) VALUES ('2016-12-27', '2. juledag');
+INSERT INTO holidays (date, name) VALUES ('2016-12-25', '1. juledag');
+INSERT INTO holidays (date, name) VALUES ('2016-12-26', '2. juledag');
 INSERT INTO holidays (date, name) VALUES ('2017-01-01', '1. nyttårsdag');
 INSERT INTO holidays (date, name) VALUES ('2017-04-09', 'Palmesøndag');
 INSERT INTO holidays (date, name) VALUES ('2017-04-13', 'Skjærtorsdag');
