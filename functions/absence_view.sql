@@ -5,7 +5,7 @@
 
 BEGIN;
 
-CREATE FUNCTION is_holiday(d date)
+CREATE OR REPLACE FUNCTION is_holiday(d date)
         RETURNS boolean AS
 $$
 BEGIN
@@ -13,7 +13,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION is_weekday(d date)
+CREATE OR REPLACE FUNCTION is_weekday(d date)
         RETURNS boolean AS
 $$
 BEGIN
@@ -23,7 +23,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION is_absence_reason(reason text)
+CREATE OR REPLACE FUNCTION is_absence_reason(reason text)
         RETURNS boolean AS
 $$
 BEGIN
@@ -36,7 +36,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE VIEW absence
+CREATE OR REPLACE VIEW absence
          AS ( SELECT employee as employee_id, date, project as reason
                 FROM staffing
                WHERE is_absence_reason(project) AND NOT is_holiday(date)
@@ -62,13 +62,13 @@ CREATE VIEW absence
 --      WHERE is_absence_reason(project) AND NOT is_holiday(date)
 --   );
 
-CREATE VIEW absence_reasons
+CREATE OR REPLACE VIEW absence_reasons
          AS ( SELECT id, name
                 FROM projects
                WHERE is_absence_reason(id)
             );
 
-CREATE VIEW absence_per_week
+CREATE OR REPLACE VIEW absence_per_week
          AS ( SELECT employee_id,
                      employee_absence.year,
                      employee_absence.week,
@@ -95,7 +95,7 @@ CREATE VIEW absence_per_week
                      holidays_absence.week
             );
 
-CREATE VIEW staffing_per_week
+CREATE OR REPLACE VIEW staffing_per_week
          AS ( SELECT employee AS employee_id,
                      EXTRACT(YEAR FROM date) AS year,
                      EXTRACT(WEEK FROM date) AS week,
@@ -106,7 +106,7 @@ CREATE VIEW staffing_per_week
             GROUP BY employee, year, week, project
             );
 
-CREATE VIEW deviation_per_week
+CREATE OR REPLACE VIEW deviation_per_week
          AS ( SELECT apw.employee_id,
                      apw.year,
                      apw.week,
