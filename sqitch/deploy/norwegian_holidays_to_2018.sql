@@ -4,6 +4,8 @@
 BEGIN;
 
 -- de-facto holidays:
+INSERT INTO holidays (date, name) VALUES ('2015-12-24', 'Julaften');
+INSERT INTO holidays (date, name) VALUES ('2015-12-31', 'Nyttårsaften');
 INSERT INTO holidays (date, name) VALUES ('2016-12-24', 'Julaften');
 INSERT INTO holidays (date, name) VALUES ('2016-12-31', 'Nyttårsaften');
 INSERT INTO holidays (date, name) VALUES ('2017-12-24', 'Julaften');
@@ -20,6 +22,8 @@ INSERT INTO holidays (date, name) VALUES ('2018-12-30', 'Julefri');
 INSERT INTO holidays (date, name) VALUES ('2018-12-31', 'Nyttårsaften');
 
 -- “real” holidays
+INSERT INTO holidays (date, name) VALUES ('2015-12-25', '1. juledag');
+INSERT INTO holidays (date, name) VALUES ('2015-12-26', '2. juledag');
 INSERT INTO holidays (date, name) VALUES ('2016-01-01', '1. nyttårsdag');
 INSERT INTO holidays (date, name) VALUES ('2016-03-20', 'Palmesøndag');
 INSERT INTO holidays (date, name) VALUES ('2016-03-24', 'Skjærtorsdag');
