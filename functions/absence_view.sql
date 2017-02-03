@@ -36,32 +36,6 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE VIEW absence
-         AS ( SELECT employee as employee_id, date, project as reason
-                FROM staffing
-               WHERE is_absence_reason(project) AND NOT is_holiday(date)
-            );
-
--- CREATE TABLE absence (
---   employee_id integer NOT NULL REFERENCES employees(id),
-
---   date date NOT NULL,
---     CHECK(NOT is_holiday(date)),
-
---   reason text NOT NULL REFERENCES projects(id),
---     CHECK(is_absence_reason(reason)),
-
---   comment text NOT NULL DEFAULT '',
-
---   PRIMARY KEY (employee_id, date)
--- );
-
--- INSERT INTO absence (employee_id, date, reason)
---   ( SELECT employee, date, project as reason
---       FROM staffing
---      WHERE is_absence_reason(project) AND NOT is_holiday(date)
---   );
-
 CREATE OR REPLACE VIEW absence_reasons
          AS ( SELECT id, name
                 FROM projects
