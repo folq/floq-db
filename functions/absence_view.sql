@@ -94,4 +94,72 @@ CREATE OR REPLACE VIEW deviation_per_week
             GROUP BY apw.employee_id, apw.year, apw.week
             );
 
+CREATE OR REPLACE FUNCTION week_dates(in_year integer, in_week integer)
+RETURNS TABLE ( date date ) AS
+$$
+BEGIN
+  RETURN QUERY SELECT date_trunc('week', (in_year::text || '-1-4')::timestamp)::date
+    + 7 * (in_week - 1)  -- fix off-by-one
+    + generate_series (0, 6);
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION available_dates(e integer, in_year integer, in_week integer)
+RETURNS TABLE ( available_date date ) AS
+$$
+BEGIN
+  RETURN QUERY
+  SELECT date AS available_date
+    FROM week_dates(in_year, in_week)
+   WHERE is_weekday(date) AND NOT is_holiday(date)
+  EXCEPT ( SELECT staffing.date AS date FROM staffing WHERE employee = e
+            UNION
+           SELECT absence.date AS date FROM absence WHERE employee_id = e
+         );
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fix_staffing_on_weekends_and_holidays()
+RETURNS TABLE (employee integer, year integer, week integer, count integer, project text) AS
+$$
+BEGIN
+  RETURN QUERY (
+    WITH move_candidates AS (
+        SELECT staffing.employee,
+               EXTRACT(YEAR FROM staffing.date) AS year,
+               EXTRACT(WEEK FROM staffing.date) AS week,
+               COUNT(staffing.date) AS count,
+               staffing.project
+          FROM staffing
+         WHERE is_holiday(staffing.date) OR NOT is_weekday(staffing.date)
+      GROUP BY staffing.employee, year, week, staffing.project
+      ), reassigned_candidates AS (
+        SELECT * FROM move_candidates s1 LEFT JOIN LATERAL (
+          SELECT available_date
+            FROM available_dates(s1.employee::integer, s1.year::integer, s1.week::integer)
+           LIMIT s1.count
+        ) s2 ON true
+      ), moved_candidates AS (
+        INSERT INTO staffing (employee, date, project)
+          ( SELECT reassigned_candidates.employee,
+                   available_date AS date,
+                   reassigned_candidates.project
+              FROM reassigned_candidates
+             WHERE available_date IS NOT NULL
+          )
+      ), old_candidates AS (
+        DELETE FROM staffing
+              WHERE is_holiday(staffing.date) OR NOT is_weekday(staffing.date)
+      )
+    SELECT t.employee,
+           t.year  ::integer,
+           t.week  ::integer,
+           t.count ::integer,
+           t.project
+      FROM reassigned_candidates t
+     WHERE t.available_date IS NULL
+  );
+END
+$$ LANGUAGE plpgsql;
+
 COMMIT;
