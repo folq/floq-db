@@ -162,4 +162,70 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION is_date_in_week(in_date date, in_year integer, in_week integer)
+RETURNS boolean AS
+$$
+BEGIN
+  RETURN (    EXTRACT(YEAR FROM in_date) = in_year
+          AND EXTRACT(WEEK FROM in_date) = in_week
+         );
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION add_staffing(
+  in_employee integer,
+  in_project text,
+  in_year integer,
+  in_week integer,
+  in_days integer
+)
+RETURNS SETOF date AS
+$$
+BEGIN
+  RETURN QUERY (
+    WITH new_staffing AS (
+      INSERT INTO staffing (employee, date, project)
+        ( SELECT in_employee AS employee,
+                 available_date AS date,
+                 in_project AS project
+            FROM available_dates(in_employee, in_year, in_week)
+        ORDER BY date ASC
+           LIMIT in_days
+        )
+        RETURNING date
+      )
+      SELECT date FROM new_staffing
+  );
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION remove_staffing(
+  in_employee integer,
+  in_project text,
+  in_year integer,
+  in_week integer,
+  in_days integer
+)
+RETURNS SETOF date AS
+$$
+BEGIN
+  RETURN QUERY (
+    WITH old_staffing AS (
+      DELETE FROM staffing
+            WHERE employee = in_employee
+              AND project = in_project
+              AND date IN ( SELECT date FROM staffing
+                             WHERE employee = in_employee
+                               AND project = in_project
+                               AND is_date_in_week(date, in_year, in_week)
+                          ORDER BY date DESC
+                             LIMIT in_days
+                          )
+        RETURNING date
+      )
+      SELECT date FROM old_staffing
+  );
+END
+$$ LANGUAGE plpgsql;
+
 COMMIT;
