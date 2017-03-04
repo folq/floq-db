@@ -15,5 +15,5 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE VIEW absence_reasons
          AS ( SELECT id, name, billable FROM projects WHERE is_absence_reason(id)
               UNION ALL
-              SELECT 'AVS' as id, 'Avspasering' as name, 'nonbillable' as billable;
+              SELECT 'AVS' as id, 'Avspasering' as name, 'nonbillable' as billable
             );
