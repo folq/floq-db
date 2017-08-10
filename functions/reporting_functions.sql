@@ -77,4 +77,81 @@ END
 $$ LANGUAGE plpgsql;
 
 
+
+CREATE OR REPLACE FUNCTION staffing_and_billing_overview(in_from_date date, in_to_date date)
+RETURNS TABLE (
+  year INT,
+  week INT,
+  from_date date,
+  to_date date,
+  available_hours NUMERIC,
+  billable_hours NUMERIC,
+  planned_fg NUMERIC,
+  actual_available_hours NUMERIC,
+  actual_billable_hours NUMERIC,
+  actual_fg NUMERIC,
+  deviation_available_hours NUMERIC,
+  deviation_billable_hours NUMERIC,
+  deviation_fg NUMERIC,
+  visibility NUMERIC
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+
+select
+  x.year,
+  x.week,
+  x.from_date,
+  x.to_date,
+  planned.available_hours,
+  planned.billable_hours,
+  100*(planned.billable_hours / planned.available_hours)                              as planned_fg,
+  actual.sum_available_hours                                                          as actual_available_hours,
+  actual.sum_billable_hours                                                           as actual_billable_hours,
+  100*(actual.sum_billable_hours / actual.sum_available_hours)                        as actual_fg,
+  actual.sum_available_hours - planned.available_hours                                as deviation_available_hours,
+  actual.sum_billable_hours - planned.billable_hours                                  as deviation_billable_hours,
+  100*((actual.sum_billable_hours - planned.billable_hours)/ planned.available_hours) as deviation_fg,
+  v.visibility
+FROM
+  (SELECT
+     tt.year                             AS year,
+     tt.week                             AS week,
+     (SELECT min(date)
+      FROM week_dates(tt.year, tt.week)) AS from_date,
+     (SELECT max(date)
+      FROM week_dates(tt.year, tt.week)) AS to_date
+
+   FROM
+     (
+       SELECT
+         EXTRACT(YEAR FROM dd) :: INTEGER AS year,
+         EXTRACT(WEEK FROM dd) :: INTEGER AS week
+       FROM
+         generate_series(in_from_date, in_to_date, '1 week' :: INTERVAL) dd
+     ) tt
+  ) x
+  LEFT OUTER JOIN reporting_visibility v ON (v.year = x.year AND v.week = x.week),
+  accumulated_staffing_hours(x.from_date, x.to_date) planned,
+  accumulated_billed_hours(x.from_date, x.to_date) actual
+
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION accumulated_billed_hours(from_date date, to_date date)
+RETURNS TABLE (sum_available_hours NUMERIC, sum_billable_hours NUMERIC) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+         sum(available_hours) :: NUMERIC AS sum_available_hours,
+         sum(billable_hours)  :: NUMERIC AS sum_billable_hours
+       FROM time_tracking_status (from_date, to_date)
+      );
+END
+$$ LANGUAGE plpgsql;
+
 COMMIT;
