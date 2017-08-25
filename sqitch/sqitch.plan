@@ -63,3 +63,4 @@ add_image_url_to_employees 2017-01-24T08:39:28Z Max Melander <maxmelander@Maxs-A
 absence_table [staffing_table] 2017-02-03T16:10:33Z Yu He <yuhe00@gmail.com> # Add absence table
 alter_absence 2017-03-03T10:26:57Z Magne Davidsen <mkd@blank.no> # Remove projects constraint
 alter_paid_overtime 2017-07-20T12:27:48Z Magne Davidsen <mkd@blank.no> # Add schema for removing not null constraint on paid date
+add_reporting_visibility_table 2017-08-10T06:50:34Z Ole Bakstad <ole.bakstad@blank.no> # Table to keep track of visibility metric
