@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT next_week_available_hours from reporting_visibility
+SELECT next_week_available_hours from reporting_visibility;
 
 ROLLBACK;

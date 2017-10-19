@@ -2,9 +2,9 @@
 
 BEGIN;
 ALTER TABLE reporting_visibility 
-    ADD COLUMN visibility NUMERIC NOT NULL
+    ADD COLUMN visibility NUMERIC NOT NULL;
 ALTER TABLE reporting_visibility
-    DROP COLUMN IF EXISTS next_week_available_hours
+    DROP COLUMN IF EXISTS next_week_available_hours;
 ALTER TABLE reporting_visibility
-    DROP COLUMN IF EXISTS next_week_billable_hours
+    DROP COLUMN IF EXISTS next_week_billable_hours;
 COMMIT;
