@@ -64,3 +64,4 @@ absence_table [staffing_table] 2017-02-03T16:10:33Z Yu He <yuhe00@gmail.com> # A
 alter_absence 2017-03-03T10:26:57Z Magne Davidsen <mkd@blank.no> # Remove projects constraint
 alter_paid_overtime 2017-07-20T12:27:48Z Magne Davidsen <mkd@blank.no> # Add schema for removing not null constraint on paid date
 add_reporting_visibility_table 2017-08-10T06:50:34Z Ole Bakstad <ole.bakstad@blank.no> # Table to keep track of visibility metric
+alter_reporting_visibility_table_remove_visibility_add_next_week 2017-10-19T08:04:07Z root <root@608638becd02> # remove visibility column add columns for next week
