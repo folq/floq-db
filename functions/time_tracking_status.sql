@@ -5,13 +5,12 @@ CREATE OR REPLACE FUNCTION public.unavailable_hours_for_employees(start_date dat
 AS $function$
 begin
   return query (
-    -- find sum of unavailable time (holidays, vacation days, sick leave, etc.) per employee
-  select t.employee, sum(minutes)
-  from time_entry t, projects p
-  where t.project = p.id
-  and t.date between start_date and end_date
-  and p.billable = 'unavailable'
-  group by t.employee
+    select t.employee, sum(minutes)
+    from time_entry t, projects p
+    where t.project = p.id
+    and t.date between start_date and end_date
+    and p.billable = 'unavailable'
+    group by t.employee
   );
 end
 $function$;
@@ -23,13 +22,12 @@ CREATE OR REPLACE FUNCTION public.billable_hours_for_employees(start_date date, 
 AS $function$
 begin
   return query (
-    -- find sum of unavailable time (holidays, vacation days, sick leave, etc.) per employee
-  select t.employee, sum(minutes)
-  from time_entry t, projects p
-  where t.project = p.id
-  and t.date between start_date and end_date
-  and p.billable = 'billable'
-  group by t.employee
+    select t.employee, sum(minutes)
+    from time_entry t, projects p
+    where t.project = p.id
+    and t.date between start_date and end_date
+    and p.billable = 'billable'
+    group by t.employee
   );
 end
 $function$;
@@ -41,13 +39,11 @@ CREATE OR REPLACE FUNCTION public.nonbillable_hours_for_employees(start_date dat
 AS $function$
 begin
   return query (
-    -- find sum of nonbillable hours worked per employee
     select t.employee, sum(minutes)
-    from time_entry t,
-         projects p
+    from time_entry t, projects p
     where t.project = p.id
-      and t.date between start_date and end_date
-      and p.billable = 'nonbillable'
+    and t.date between start_date and end_date
+    and p.billable = 'nonbillable'
     group by t.employee
   );
 end
@@ -81,7 +77,7 @@ begin
         full outer join (
           select * from billable_hours_for_employees(start_date,end_date)
         ) bh on uah.id = bh.id
-    	  full outer join (
+        full outer join (
           select * from billable_hours_for_employees(start_date,end_date)
         ) nbh on uah.id = nbh.id
     ) as t on t.employee_id = e.id
@@ -89,14 +85,14 @@ begin
     -- find last time_entry date for employees
     left join (
       select distinct on(te.employee) te.employee, te.date
-          from time_entry te 
+          from time_entry te
           order by te.employee, te.date desc
     ) ld on ld.employee=e.id
 
     -- find last time_entry created for employees
     left join (
       select distinct on(te.employee) te.employee, te.created
-          from time_entry te 
+          from time_entry te
           order by te.employee, te.created desc
     ) lc on lc.employee=e.id
 
@@ -106,7 +102,7 @@ begin
     order by e.first_name, e.last_name
   );
 end
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.fg_for_employee(emp_id integer, start_date date, end_date date)
  RETURNS TABLE(available_hours double precision, billable_hours double precision)
@@ -115,30 +111,30 @@ CREATE OR REPLACE FUNCTION public.fg_for_employee(emp_id integer, start_date dat
 AS $function$
 begin
   return query (
-	select 
-		business_hours(greatest(e.date_of_employment, start_date), least(e.termination_date, end_date)) - coalesce(sum(employee.unavailable_hours)/60.0, 0.0)::float8 as available_hours,
-	    coalesce(sum(employee.billable_hours)/60.0, 0.0)::float8 as billable_hours
+    select 
+    business_hours(greatest(e.date_of_employment, start_date), least(e.termination_date, end_date)) - coalesce(sum(employee.unavailable_hours)/60.0, 0.0)::float8 as available_hours,
+	  coalesce(sum(employee.billable_hours)/60.0, 0.0)::float8 as billable_hours
 	from employees e
-	left join (
-	
+  left join (
+
 	   select coalesce(uah.id, bh.id, nbh.id) as employee_id,
 	   		uah.sum as unavailable_hours,
 	        bh.sum as billable_hours,
 	        nbh.sum as non_billable_hours
 	    from (
-	        select * from unavailable_hours_for_employees(start_date,end_date)
+        select * from unavailable_hours_for_employees(start_date,end_date)
 	    ) uah
-	    full outer join (
+      full outer join (
 	    	select * from billable_hours_for_employees(start_date,end_date)
 	    ) bh on uah.id = bh.id
-	  	full outer join (
-	      select * from billable_hours_for_employees(start_date,end_date)
+      full outer join (
+        select * from billable_hours_for_employees(start_date,end_date)
 	    ) nbh on uah.id = nbh.id
-	    
+
 	) as employee on employee.employee_id = e.id
-	
+
 	where e.id = emp_id
 	group by e.id
   );
 end
-$function$
+$function$;
