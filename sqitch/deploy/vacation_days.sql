@@ -21,7 +21,7 @@ CREATE VIEW employee_years AS (
 CREATE VIEW vacation_days_earnt AS (
     SELECT employee, employee_years.year, coalesce(days_earnt, 25) AS days_earnt
     FROM employee_years 
-    LEFT JOIN vacation_days on vacation_days.year = employee_years.year
+    LEFT JOIN vacation_days on vacation_days.year = employee_years.year AND vacation_days.employee_id = employee_years.employee
 );
 
 -- View returning vacation days spent per year the employee has been employed, defaulting to 0
