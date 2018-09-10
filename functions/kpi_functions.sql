@@ -22,41 +22,10 @@ END
 $$ LANGUAGE plpgsql;
 
 
-
-CREATE OR REPLACE FUNCTION kpi_ot(in_from_date date, in_to_date date)
-RETURNS TABLE (
-  from_date date,
-  to_date date,
-  payload double precision
-) AS
-$$
-BEGIN
-  RETURN QUERY (
-SELECT
-  x.from_date,
-  x.to_date,                                      
-  sum(invoice_balance_money) / (sum(invoice_balance_minutes)/60.0)
-FROM
-  (
-    SELECT * from month_dates(in_from_date, in_to_date)
-  ) as x,	
-  	hours_per_project(x.from_date, x.to_date) as hours_per_project
-  	
-GROUP BY x.from_date, x.to_date
-);
-END
-$$ LANGUAGE plpgsql;
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION kpi_ot(in_from_date date, in_to_date date)
+CREATE OR REPLACE FUNCTION kpi_sick(in_from_date date, in_to_date date)
 RETURNS TABLE (
  from_date date,
  to_date date,
- imoney double precision,
  payload double precision
 ) AS
 $$
@@ -65,19 +34,42 @@ BEGIN
 SELECT
  x.from_date,
  x.to_date,
- sum(invoice_balance_money), 
- ot                   
+ sick_hours / sum_business_hours
 FROM
  (
-   SELECT * from month_dates(in_from_date, in_to_date, interval '1' month)
+   SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
  ) as x, 
-   hours_per_project(x.from_date, x.to_date) as hours_per_project,
-   (sum(invoice_balance_money) - sum(subcontractor_money) - sum(expense_money)) / ((sum(invoice_balance_minutes))/60.0) as ot
-   
+ sum_business_hours(x.from_date, x.to_date),
+ sick_hours(x.from_date, x.to_date)
+GROUP BY x.from_date, x.to_date, sum_business_hours, sick_hours
+);
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION kpi_ul(in_from_date date, in_to_date date)
+RETURNS TABLE (
+ from_date date,
+ to_date date,
+ payload double precision
+) AS
+$$
+BEGIN
+ RETURN QUERY (
+SELECT
+ x.from_date,
+ x.to_date,
+ sum(subcontractor_money) / sum(invoice_balance_money)
+FROM
+ (
+   SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
+ ) as x, 
+   hours_per_project(x.from_date, x.to_date) as hours_per_project   
 GROUP BY x.from_date, x.to_date
 );
 END
 $$ LANGUAGE plpgsql;
+
 
 
 
@@ -190,6 +182,25 @@ SELECT
 FROM
   (
   select 7.5 * count(*) as unavailable from staffing join projects on staffing.project = projects.id where billable='unavailable' and staffing.date <= end_date and staffing.date >= start_date
+  ) tt  
+ );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION sick_hours(start_date date, end_date date)
+RETURNS TABLE (
+sick_hours numeric
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+
+SELECT
+  tt.sick
+FROM
+  (
+    select sum(minutes)/60.0 as sick from time_entry where (project = 'SYK1000' or project = 'SYK1001' or project = 'SYK1002') and (date >= start_date and date <= end_date)
   ) tt  
  );
 END
