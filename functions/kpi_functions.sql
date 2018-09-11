@@ -205,3 +205,39 @@ FROM
  );
 END
 $$ LANGUAGE plpgsql;
+
+/// Professional Development KPI
+
+CREATE OR REPLACE FUNCTION public.total_hours_on_project_in_period(start_date date, end_date date, project_code text)
+RETURNS TABLE(project_hours double precision)
+LANGUAGE plpgsql
+STABLE STRICT
+AS $function$
+begin
+ return query (
+   select sum(minutes)/60::double precision AS project_hours
+   from time_entry t
+   where t.project = project_code
+   and t.date between start_date and end_date
+ );
+end
+$function$;
+
+
+CREATE OR REPLACE FUNCTION public.prodev(start_date date, end_date date)
+  RETURNS TABLE(date date, percent double precision)
+  LANGUAGE plpgsql
+  STABLE STRICT
+AS $function$
+begin
+  return query (
+    SELECT d.date, ((f.project_hours / p.available_hours)*100)::double precision AS percent FROM generate_series(
+      start_date::date,
+      end_date,
+      '1 month'
+  ) d, 
+    accumulated_staffing_hours2((d.date - interval '6' month)::DATE, d.date) p, 
+    total_hours_on_project_in_period((d.date - interval '6' month)::DATE, d.date, 'FAG1000') f
+  );
+end
+$function$;
