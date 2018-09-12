@@ -241,3 +241,46 @@ begin
   );
 end
 $function$;
+
+/// Forecasted FG
+
+CREATE OR REPLACE FUNCTION planned_billable_hours_in_period(start_date date, end_date date)
+  RETURNS TABLE(date date, hours double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      start_date::date,
+      (SUM(spw.days) * 7.5)::double precision as hours
+    FROM staffing_per_week AS spw, projects as p
+    WHERE spw.project_id = p.id and p.billable = 'billable' 
+    and to_date('' || spw.year || '-' || spw.week || '-1', 'IYYY-IW-ID') >= start_date
+    and to_date('' || spw.year || '-' || spw.week || '-5', 'IYYY-IW-ID') <= end_date
+  );
+end
+$function$;
+
+CREATE OR REPLACE FUNCTION public.forecasted_fg(start_date date, end_date date)
+  RETURNS TABLE(org_date date, adj_date date, total_hours double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      d.org_date::date as org_date,
+      d.adj_date::date as adj_date,
+      p.hours
+    FROM
+      (
+        SELECT
+          dd as org_date,
+          (dd - ((SELECT CASE WHEN wd = 6 THEN 0 ELSE wd END FROM date_part('dow', dd) as wd) || ' day')::INTERVAL) as adj_date
+        FROM 
+          generate_series(start_date::timestamp, end_date::timestamp, '1 month') as dd
+      ) d,
+      planned_billable_hours_in_period((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) p
+      
+  );
+end
+$function$;
