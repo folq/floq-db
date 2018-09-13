@@ -21,6 +21,29 @@ FROM
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION kpi_product_development(in_start_date date, in_end_date date)
+RETURNS TABLE (
+ from_date date,
+ to_date date,
+ payload numeric
+) AS
+$$
+BEGIN
+ RETURN QUERY (
+SELECT
+ x.from_date,
+ x.to_date,
+ hours
+FROM
+ (
+   SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
+ ) as x, 
+   product_development_hours(x.from_date, x.to_date) as hours   
+GROUP BY x.from_date, x.to_date, hours.hours
+);
+END
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION kpi_sick(in_from_date date, in_to_date date)
 RETURNS TABLE (
@@ -75,7 +98,6 @@ $$ LANGUAGE plpgsql;
 
 
 ///HELPERS
-
 CREATE OR REPLACE FUNCTION sum_business_hours(in_from_date date, in_to_date date)
 RETURNS TABLE (
 	sum_business_hours double precision
@@ -201,6 +223,25 @@ SELECT
 FROM
   (
     select sum(minutes)/60.0 as sick from time_entry where (project = 'SYK1000' or project = 'SYK1001' or project = 'SYK1002') and (date >= start_date and date <= end_date)
+  ) tt  
+ );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION product_development_hours(from_date date, to_date date)
+RETURNS TABLE (
+hours numeric
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+
+SELECT
+  tt.hours
+FROM
+  (
+	select sum(minutes)/60.0 as hours from time_entry where (project = 'INT1000' or project = 'INT1004' or project = 'INT1003') and (date >= from_date and date <= to_date)
   ) tt  
  );
 END
