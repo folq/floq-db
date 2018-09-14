@@ -110,13 +110,26 @@ SELECT
 	sum(tt.business_hours)
 FROM
   (
-  	select business_hours from 
+  	SELECT 
+      business_hours 
+    FROM 
 		(
-			select employees.id as id, employees.first_name, employees.date_of_employment, employees.termination_date from employees,
-			time_entry
-			where time_entry.employee = employees.id
-			and time_entry.date <= in_to_date and time_entry.date >= in_from_date
-			group by employees.id, employees.date_of_employment, employees.termination_date
+			SELECT 
+        employees.id as id,
+        employees.first_name,
+        employees.date_of_employment,
+        employees.termination_date
+      FROM
+        employees,
+        time_entry
+			WHERE 
+        time_entry.employee = employees.id AND
+        time_entry.date <= in_to_date AND
+        time_entry.date >= in_from_date
+			GROUP BY 
+        employees.id,
+        employees.date_of_employment,
+        employees.termination_date
 		) as e,
 		business_hours(greatest(in_from_date, e.date_of_employment),least(e.termination_date, in_to_date))
   ) tt  
@@ -132,13 +145,18 @@ $$
 BEGIN
   RETURN QUERY (
     SELECT
-         sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
-         7.5 * count(*)  :: numeric AS billable_hours
-       FROM 
-        sum_business_hours(from_date, to_date), 
+      sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
+      (7.5 * count(*)):: numeric AS billable_hours
+    FROM 
+      sum_business_hours(from_date, to_date), 
       unavailable_staffing_hours(from_date, to_date),
-      staffing join projects on projects.id = staffing.project and projects.billable = 'billable' and staffing.date <= to_date and staffing.date >= from_date 
-      group by (sum_business_hours, unavailable_hours) LIMIT 1);
+      staffing
+    JOIN projects ON
+      projects.id = staffing.project AND
+      projects.billable = 'billable' AND
+      staffing.date <= to_date AND
+      staffing.date >= from_date
+    GROUP BY (sum_business_hours, unavailable_hours) LIMIT 1);
 END
 $$ LANGUAGE plpgsql;
 
@@ -152,11 +170,15 @@ BEGIN
     SELECT
          sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
          SUM(minutes/60.0)  :: numeric AS sum_billable_hours
-       FROM 
-        sum_business_hours(from_date, to_date), 
-      unavailable_hours(from_date, to_date),
-      time_entry join projects on projects.id = time_entry.project and projects.billable = 'billable' and date <= to_date and date >= from_date 
-      group by (sum_business_hours, unavailable_hours)) LIMIT 1;
+    FROM 
+     sum_business_hours(from_date, to_date), 
+     unavailable_hours(from_date, to_date),
+     time_entry
+    JOIN projects ON
+      projects.id = time_entry.project AND
+      projects.billable = 'billable' AND
+      time_entry.date <= to_date and time_entry.date >= from_date 
+    GROUP BY (sum_business_hours, unavailable_hours)) LIMIT 1;
 END
 $$ LANGUAGE plpgsql;
 
@@ -222,7 +244,13 @@ SELECT
   tt.sick
 FROM
   (
-    select sum(minutes)/60.0 as sick from time_entry where (project = 'SYK1000' or project = 'SYK1001' or project = 'SYK1002') and (date >= start_date and date <= end_date)
+    SELECT
+      sum(minutes)/60.0 as sick
+    FROM
+      time_entry
+    WHERE
+      (project = 'SYK1000' OR project = 'SYK1001' OR project = 'SYK1002') AND
+      (time_entry.date >= start_date AND time_entry.date <= end_date)
   ) tt  
  );
 END
@@ -235,13 +263,13 @@ hours numeric
 $$
 BEGIN
   RETURN QUERY (
-
-SELECT
-  tt.hours
-FROM
-  (
-	select sum(minutes)/60.0 as hours from time_entry where (project = 'INT1000' or project = 'INT1004' or project = 'INT1003') and (date >= from_date and date <= to_date)
-  ) tt  
+    SELECT
+      sum(minutes)/60.0 AS hours 
+    FROM
+      time_entry
+    WHERE
+      (project = 'INT1000' OR project = 'INT1004' OR project = 'INT1003') AND
+      (time_entry.date >= from_date AND time_entry.date <= to_date)
  );
 END
 $$ LANGUAGE plpgsql;
@@ -255,10 +283,13 @@ STABLE STRICT
 AS $function$
 begin
  return query (
-   select sum(minutes)/60::double precision AS project_hours
-   from time_entry t
-   where t.project = project_code
-   and t.date between start_date and end_date
+   SELECT
+    sum(minutes)/60::double precision AS project_hours
+   FROM 
+    time_entry
+   WHERE
+    time_entry.project = project_code AND
+    time_entry.date BETWEEN start_date AND end_date
  );
 end
 $function$;
@@ -266,8 +297,6 @@ $function$;
 
 CREATE OR REPLACE FUNCTION public.prodev(start_date date, end_date date)
   RETURNS TABLE(date date, percent double precision)
-  LANGUAGE plpgsql
-  STABLE STRICT
 AS $function$
 begin
   return query (
@@ -286,7 +315,6 @@ $function$;
 
 CREATE OR REPLACE FUNCTION planned_billable_hours_in_period(start_date date, end_date date)
   RETURNS TABLE(date date, hours double precision)
-  LANGUAGE plpgsql
 AS $function$
 begin
   return query (
@@ -304,7 +332,6 @@ $function$;
 
 CREATE OR REPLACE FUNCTION public.fgdev(start_date date, end_date date)
   RETURNS TABLE(org_date date, adj_date date, predicted_fg double precision, achieved_fg double precision, deviation_percent double precision)
-  LANGUAGE plpgsql
 AS $function$
 begin
   return query (
@@ -333,7 +360,6 @@ $function$;
 
 CREATE OR REPLACE FUNCTION public.visibility(start_date date, end_date date)
   RETURNS TABLE(org_date date, fwd_adj_date date, percent double precision)
-  LANGUAGE plpgsql
 AS $function$
 begin
   return query (
