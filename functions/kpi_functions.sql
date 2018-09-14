@@ -21,6 +21,29 @@ FROM
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION kpi_product_development(in_start_date date, in_end_date date)
+RETURNS TABLE (
+ from_date date,
+ to_date date,
+ payload numeric
+) AS
+$$
+BEGIN
+ RETURN QUERY (
+SELECT
+ x.from_date,
+ x.to_date,
+ hours
+FROM
+ (
+   SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
+ ) as x, 
+   product_development_hours(x.from_date, x.to_date) as hours   
+GROUP BY x.from_date, x.to_date, hours.hours
+);
+END
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION kpi_sick(in_from_date date, in_to_date date)
 RETURNS TABLE (
@@ -75,7 +98,6 @@ $$ LANGUAGE plpgsql;
 
 
 ///HELPERS
-
 CREATE OR REPLACE FUNCTION sum_business_hours(in_from_date date, in_to_date date)
 RETURNS TABLE (
 	sum_business_hours double precision
@@ -205,3 +227,131 @@ FROM
  );
 END
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION product_development_hours(from_date date, to_date date)
+RETURNS TABLE (
+hours numeric
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+
+SELECT
+  tt.hours
+FROM
+  (
+	select sum(minutes)/60.0 as hours from time_entry where (project = 'INT1000' or project = 'INT1004' or project = 'INT1003') and (date >= from_date and date <= to_date)
+  ) tt  
+ );
+END
+$$ LANGUAGE plpgsql;
+
+/// Professional Development KPI
+
+CREATE OR REPLACE FUNCTION public.total_hours_on_project_in_period(start_date date, end_date date, project_code text)
+RETURNS TABLE(project_hours double precision)
+LANGUAGE plpgsql
+STABLE STRICT
+AS $function$
+begin
+ return query (
+   select sum(minutes)/60::double precision AS project_hours
+   from time_entry t
+   where t.project = project_code
+   and t.date between start_date and end_date
+ );
+end
+$function$;
+
+
+CREATE OR REPLACE FUNCTION public.prodev(start_date date, end_date date)
+  RETURNS TABLE(date date, percent double precision)
+  LANGUAGE plpgsql
+  STABLE STRICT
+AS $function$
+begin
+  return query (
+    SELECT d.date, ((f.project_hours / p.available_hours)*100)::double precision AS percent FROM generate_series(
+      start_date::date,
+      end_date,
+      '1 month'
+  ) d, 
+    accumulated_staffing_hours2((d.date - interval '6' month)::DATE, d.date) p, 
+    total_hours_on_project_in_period((d.date - interval '6' month)::DATE, d.date, 'FAG1000') f
+  );
+end
+$function$;
+
+/// FG Deviation
+
+CREATE OR REPLACE FUNCTION planned_billable_hours_in_period(start_date date, end_date date)
+  RETURNS TABLE(date date, hours double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      start_date::date,
+      (SUM(spw.days) * 7.5)::double precision as hours
+    FROM staffing_per_week AS spw, projects as p
+    WHERE spw.project_id = p.id and p.billable = 'billable' 
+    and to_date('' || spw.year || '-' || spw.week || '-1', 'IYYY-IW-ID') >= start_date
+    and to_date('' || spw.year || '-' || spw.week || '-5', 'IYYY-IW-ID') <= end_date
+  );
+end
+$function$;
+
+
+CREATE OR REPLACE FUNCTION public.fgdev(start_date date, end_date date)
+  RETURNS TABLE(org_date date, adj_date date, predicted_fg double precision, achieved_fg double precision, deviation_percent double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      d.org_date::date as org_date,
+      d.adj_date::date as adj_date,
+      (pbh.hours/ash.available_hours)*100::double precision as predicted_fg,
+      (abh.sum_billable_hours/abh.sum_available_hours)*100::double precision as achieved_fg,
+      ((abh.sum_billable_hours/abh.sum_available_hours)/(pbh.hours/ash.available_hours))*100-100 as deviation_percent
+    FROM
+      (
+        SELECT
+          dd as org_date,
+          (dd - ((SELECT CASE WHEN wd = 6 THEN 0 ELSE wd END FROM date_part('dow', dd) as wd) || ' day')::INTERVAL) as adj_date
+        FROM 
+          generate_series(start_date::timestamp, end_date::timestamp, '1 month') as dd
+      ) d,
+      planned_billable_hours_in_period((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) pbh,
+      accumulated_staffing_hours2((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) ash,
+      accumulated_billed_hours2((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) abh
+  );
+end
+$function$;
+
+// VISIBILITY
+
+CREATE OR REPLACE FUNCTION public.visibility(start_date date, end_date date)
+  RETURNS TABLE(org_date date, fwd_adj_date date, percent double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      d.org_date::DATE,
+      d.fwd_adj_date::DATE,
+      (pbh.hours/ash.available_hours)*100::double precision as forecasted_fg
+    FROM
+    (
+      SELECT
+        date_i as org_date,
+        (date_i + ((7 - date_part('dow', date_i)) || ' day')::INTERVAL) as fwd_adj_date 
+      FROM
+        generate_series(start_date::timestamp, end_date::timestamp, '1 month') as date_i
+    ) d,
+    planned_billable_hours_in_period(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) pbh,
+    accumulated_staffing_hours2(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) ash
+    
+  );
+end
+$function$;
