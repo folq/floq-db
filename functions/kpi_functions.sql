@@ -361,28 +361,31 @@ begin
 end
 $function$;
 
-// VISIBILITY
+// Visibility - forecasted FG (based of 12 next weeks)
 
-CREATE OR REPLACE FUNCTION public.visibility(start_date date, end_date date)
-  RETURNS TABLE(org_date date, fwd_adj_date date, percent double precision)
+CREATE OR REPLACE FUNCTION public.kpi_visibility(start_date date, end_date date)
+  RETURNS TABLE(org_date date, fwd_adj_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
+  LANGUAGE plpgsql
 AS $function$
 begin
   return query (
     SELECT
       d.org_date::DATE,
       d.fwd_adj_date::DATE,
-      (pbh.hours/ash.available_hours)*100::double precision AS forecasted_fg
+      (d.fwd_adj_date + interval '12 weeks')::DATE,
+      ash.billable_hours::double precision,
+      ash.available_hours::double precision,    
+      (ash.billable_hours/ash.available_hours)::double precision as percentage_billable
     FROM
     (
       SELECT
-        date_i AS org_date,
-        (date_i + ((7 - date_part('dow', date_i)) || ' day')::INTERVAL) AS fwd_adj_date 
+        date_i as org_date,
+        (date_i + ((7 - date_part('dow', date_i)) || ' day')::INTERVAL) as fwd_adj_date 
       FROM
-        generate_series(start_date::timestamp, end_date::timestamp, '1 month') AS date_i
+        generate_series(start_date::timestamp, end_date::timestamp, '1 month') as date_i
     ) d,
-    planned_billable_hours_in_period(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) pbh,
-    accumulated_staffing_hours2(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) ash
-    
+    accumulated_staffing_hours(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) ash
   );
 end
 $function$;
+
