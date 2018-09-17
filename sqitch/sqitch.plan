@@ -67,4 +67,5 @@ add_reporting_visibility_table 2017-08-10T06:50:34Z Ole Bakstad <ole.bakstad@bla
 alter_reporting_visibility_table_remove_visibility_add_next_week 2017-10-19T08:04:07Z root <root@608638becd02> # remove visibility column add columns for next week
 vacation_days 2018-08-31T08:15:48Z Magne Davidsen <magne.davidsen@blank.no> # Add schema for vacation days
 vacation_days_fix 2018-09-04T20:19:19Z Magne Davidsen <magne.davidsen@blank.no> # Fix bug in vacation days
+vacation_days_fix_pt2 2018-09-12T11:20:30Z Magne Davidsen <magne.davidsen@blank.no> # Selecting years employee has been employed correctly
 alter_table_employees_add_column_has_permanent_position 2018-09-04T14:30:52Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new colum has_permanent_position to employees table
