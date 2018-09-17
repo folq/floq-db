@@ -375,17 +375,18 @@ begin
       (d.fwd_adj_date + interval '12 weeks')::DATE,
       ash.billable_hours::double precision,
       ash.available_hours::double precision,    
-      (ash.billable_hours/ash.available_hours)::double precision as percentage_billable
+      (ash.billable_hours/ash.available_hours)*100::double precision as percentage_billable
     FROM
     (
       SELECT
         date_i as org_date,
         (date_i + ((7 - date_part('dow', date_i)) || ' day')::INTERVAL) as fwd_adj_date 
       FROM
-        generate_series(start_date::timestamp, end_date::timestamp, '1 month') as date_i
+        generate_series(date_trunc('MONTH', start_date::timestamp), date_trunc('MONTH', end_date::timestamp), '1 month') as date_i
     ) d,
     accumulated_staffing_hours(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) ash
   );
 end
 $function$;
+
 
