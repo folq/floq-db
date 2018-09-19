@@ -78,7 +78,7 @@ begin
           select * from billable_hours_for_employees(start_date,end_date)
         ) bh on uah.id = bh.id
         full outer join (
-          select * from billable_hours_for_employees(start_date,end_date)
+          select * from nonbillable_hours_for_employees(start_date,end_date)
         ) nbh on uah.id = nbh.id
     ) as t on t.employee_id = e.id
 
