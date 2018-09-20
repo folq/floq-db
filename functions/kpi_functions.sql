@@ -97,7 +97,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-///HELPERS
+-- HELPERS
 CREATE OR REPLACE FUNCTION sum_business_hours(in_from_date date, in_to_date date)
 RETURNS TABLE (
 	sum_business_hours double precision
@@ -274,7 +274,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-/// Professional Development KPI
+-- Professional Development KPI
 
 CREATE OR REPLACE FUNCTION public.total_hours_on_project_in_period(start_date date, end_date date, project_code text)
 RETURNS TABLE(project_hours double precision)
@@ -316,7 +316,7 @@ begin
 end
 $function$;
 
-/// FG Deviation
+-- FG Deviation
 
 CREATE OR REPLACE FUNCTION planned_billable_hours_in_period(start_date date, end_date date)
   RETURNS TABLE(date date, hours double precision)
@@ -361,7 +361,7 @@ begin
 end
 $function$;
 
-// Visibility - forecasted FG (based of 12 next weeks)
+-- Visibility - forecasted FG (based of 12 next weeks)
 
 CREATE OR REPLACE FUNCTION public.kpi_visibility(start_date date, end_date date)
   RETURNS TABLE(org_date date, fwd_adj_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
@@ -389,7 +389,8 @@ begin
 end
 $function$;
 
-// Forcasted Available Hours (FG Deviation / Forcasted FG)
+
+-- Forcasted Available Hours (FG Deviation / Forcasted FG)
 
 CREATE OR REPLACE FUNCTION unavilable_staffing_dates_in_period(from_date date, to_date date)
   RETURNS TABLE (employee_id integer, work_day date) AS
@@ -470,8 +471,5 @@ BEGIN
   );
 END
 $$ LANGUAGE plpgsql;
-
-
-
 
 
