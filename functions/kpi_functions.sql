@@ -308,7 +308,7 @@ begin
       f.project_hours,
       abh.sum_available_hours
     FROM
-      (SELECT * from month_dates('2017-07-01', '2018-07-01', interval '6' month)) d,
+      (SELECT * from month_dates(start_date, end_date, interval '6' month)) d,
       accumulated_billed_hours2(d.from_date, d.to_date) abh,
       total_hours_on_project_in_period(d.from_date, d.to_date, 'FAG1000') f
       
