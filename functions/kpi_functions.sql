@@ -389,4 +389,89 @@ begin
 end
 $function$;
 
+// Forcasted Available Hours (FG Deviation / Forcasted FG)
+
+CREATE OR REPLACE FUNCTION unavilable_staffing_dates_in_period(from_date date, to_date date)
+  RETURNS TABLE (employee_id integer, work_day date) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+    e.id as employee_id,
+    s.date as staffed_id
+  FROM
+    employees AS e,
+    staffing AS s,
+    projects AS p
+  WHERE
+    e.id = s.employee AND
+    s.project = p.id AND
+    p.billable = 'unavailable' AND
+    s.date BETWEEN greatest(from_date, e.date_of_employment) AND least(e.termination_date, to_date)
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION all_employee_work_dates_in_period(from_date date, to_date date)
+  RETURNS TABLE (employee_id int, work_date date) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+      e.id,
+      s::DATE
+  FROM
+    employees AS e,
+    generate_series(greatest(from_date, e.date_of_employment),least(e.termination_date, to_date), '1 day' :: interval) as s
+  WHERE
+    is_weekday(s::DATE) AND NOT is_holiday(s::DATE)
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION all_absence_dates_in_period(from_date date, to_date date)
+  RETURNS TABLE (employee_id int, absence_date date) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+    e.id as employee_id,
+    a.date as absence_date
+  FROM
+    employees as e,
+    absence as a,
+    absence_reasons as ar
+  WHERE
+    e.id = a.employee_id AND
+    a.reason = ar.id AND
+    ar.billable = 'unavailable' AND
+    a.date BETWEEN greatest(from_date, e.date_of_employment) AND least(e.termination_date, to_date)
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION forcasted_available_hours(start_date date, end_date date)
+  RETURNS TABLE (all_hours double precision, unavil_staffing_hours double precision, unavail_absence_hours double precision, available_hours double precision) AS
+$$
+BEGIN
+  RETURN QUERY (
+  SELECT
+    ewd.hours::double precision as all_hours,
+    usd.hours::double precision as unavil_staffing_hours,
+    abs.hours::double precision as unavail_absence_hours,
+    (ewd.hours - usd.hours - abs.hours)::double precision as available_hours
+  FROM
+    (SELECT COUNT(work_date) * 7.5 as hours FROM all_employee_work_dates_in_period(start_date, end_date)) AS ewd,
+    (SELECT COUNT(work_day) * 7.5 as hours FROM unavilable_staffing_dates_in_period(start_date, end_date)) AS usd,
+    (SELECT COUNT(absence_date) * 7.5 as hours FROM all_absence_dates_in_period(start_date, end_date)) AS abs
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+
+
 
