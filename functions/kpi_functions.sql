@@ -363,28 +363,58 @@ $function$;
 
 -- Visibility - forecasted FG (based of 12 next weeks)
 
-CREATE OR REPLACE FUNCTION public.kpi_visibility(start_date date, end_date date)
-  RETURNS TABLE(org_date date, fwd_adj_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
+CREATE OR REPLACE FUNCTION planned_billable_hours(start_date date, end_date date)
+  RETURNS TABLE (billable_hours double precision) AS
+$$
+BEGIN
+  RETURN QUERY (
+  SELECT
+    COUNT(*)*7.5::double precision as billable_hours
+  FROM
+    staffing as s,
+    projects as p
+  WHERE
+    s.project = p.id AND
+    p.billable = 'billable' AND
+    s.date BETWEEN start_date AND end_date
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION public.forcasted_fg_in_period(start_date date, end_date date)
+  RETURNS TABLE(planned_billable_hours double precision, available_hours double precision, percent double precision)
   LANGUAGE plpgsql
 AS $function$
 begin
   return query (
     SELECT
-      d.org_date::DATE,
-      d.fwd_adj_date::DATE,
-      (d.fwd_adj_date + interval '12 weeks')::DATE,
-      ash.billable_hours::double precision,
-      ash.available_hours::double precision,    
-      (ash.billable_hours/ash.available_hours)*100::double precision as percentage_billable
+      pbh.billable_hours::double precision,
+      fah.available_hours::double precision,    
+      (pbh.billable_hours/fah.available_hours)*100::double precision as percentage_billable
     FROM
-    (
-      SELECT
-        date_i as org_date,
-        (date_i + ((7 - date_part('dow', date_i)) || ' day')::INTERVAL) as fwd_adj_date 
-      FROM
-        generate_series(date_trunc('MONTH', start_date::timestamp), date_trunc('MONTH', end_date::timestamp), '1 month') as date_i
-    ) d,
-    accumulated_staffing_hours(d.fwd_adj_date::DATE, (d.fwd_adj_date + interval '12 weeks')::DATE) ash
+    forcasted_available_hours(start_date, end_date) fah,
+    planned_billable_hours(start_date, end_date) pbh
+  );
+end
+$function$;
+
+
+CREATE OR REPLACE FUNCTION public.kpi_visibility(start_date date, end_date date)
+  RETURNS TABLE(from_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
+  LANGUAGE plpgsql
+AS $function$
+begin
+  return query (
+    SELECT
+      gds.from_date::DATE as from_date,
+      (gds.from_date + interval '12 weeks')::DATE to_date,
+      ffg.planned_billable_hours::double precision,
+      ffg.available_hours::double precision,
+      ffg.percent::double precision
+    FROM
+    (SELECT * FROM generate_series(date_trunc('MONTH', start_date::timestamp), date_trunc('MONTH', end_date::timestamp), '1 month') as from_date) gds,
+    forcasted_fg_in_period(gds.from_date::DATE, (gds.from_date + interval '12 weeks')::DATE) ffg
   );
 end
 $function$;
