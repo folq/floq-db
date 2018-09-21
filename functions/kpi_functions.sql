@@ -130,29 +130,6 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION accumulated_staffing_hours2(from_date date, to_date date)
-RETURNS TABLE (available_hours double precision, billable_hours numeric) AS
-$$
-BEGIN
-  RETURN QUERY (
-    SELECT
-      sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
-      (7.5 * count(*)):: numeric AS billable_hours
-    FROM 
-      sum_business_hours(from_date, to_date), 
-      unavailable_staffing_hours(from_date, to_date),
-      staffing
-    JOIN projects ON
-      projects.id = staffing.project AND
-      projects.billable = 'billable' AND
-      staffing.date <= to_date AND
-      staffing.date >= from_date
-    GROUP BY (sum_business_hours, unavailable_hours) LIMIT 1);
-END
-$$ LANGUAGE plpgsql;
-
-
-
 CREATE OR REPLACE FUNCTION accumulated_billed_hours2(from_date date, to_date date)
 RETURNS TABLE (sum_available_hours double precision, sum_billable_hours numeric) AS
 $$
