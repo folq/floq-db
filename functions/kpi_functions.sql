@@ -294,48 +294,30 @@ $function$;
 
 -- FG Deviation
 
-CREATE OR REPLACE FUNCTION planned_billable_hours_in_period(start_date date, end_date date)
-  RETURNS TABLE(date date, hours double precision)
+CREATE OR REPLACE FUNCTION public.kpi_fgdev(start_date date, end_date date)
+  RETURNS TABLE(from_date date, to_date date, blanned_billable_hours double precision, achieved_billable_hours double precision, deviation double precision)
 AS $function$
 begin
   return query (
     SELECT
-      start_date::date,
-      (SUM(spw.days) * 7.5)::double precision AS hours
-    FROM staffing_per_week AS spw, projects AS p
-    WHERE spw.project_id = p.id and p.billable = 'billable' 
-    and to_date('' || spw.year || '-' || spw.week || '-1', 'IYYY-IW-ID') >= start_date
-    and to_date('' || spw.year || '-' || spw.week || '-5', 'IYYY-IW-ID') <= end_date
-  );
-end
-$function$;
-
-
-CREATE OR REPLACE FUNCTION public.fgdev(start_date date, end_date date)
-  RETURNS TABLE(org_date date, adj_date date, predicted_fg double precision, achieved_fg double precision, deviation_percent double precision)
-AS $function$
-begin
-  return query (
-    SELECT
-      d.org_date::date AS org_date,
-      d.adj_date::date AS adj_date,
-      (pbh.hours/ash.available_hours)*100::double precision AS predicted_fg,
-      (abh.sum_billable_hours/abh.sum_available_hours)*100::double precision AS achieved_fg,
-      ((abh.sum_billable_hours/abh.sum_available_hours)/(pbh.hours/ash.available_hours))*100-100 AS deviation_percent
+      (d.org_date::date - interval '12 week')::DATE AS from_date,
+      d.org_date::DATE AS to_date,
+      pbh.billable_hours::double precision AS planned_billable_hours,
+      abh.sum_billable_hours::double precision AS achieved_billeable_hours,
+      ((abh.sum_billable_hours - pbh.billable_hours)/abh.sum_billable_hours)*100::double precision AS deviation
     FROM
       (
         SELECT
           dd AS org_date,
           (dd - ((SELECT CASE WHEN wd = 6 THEN 0 ELSE wd END FROM date_part('dow', dd) AS wd) || ' day')::INTERVAL) AS adj_date
-        FROM 
+        FROM
           generate_series(start_date::timestamp, end_date::timestamp, '1 month') AS dd
       ) d,
-      planned_billable_hours_in_period((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) pbh,
-      accumulated_staffing_hours2((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) ash,
-      accumulated_billed_hours2((d.adj_date::date - interval '12 week')::DATE, d.adj_date::date) abh
+      planned_billable_hours((d.org_date::date - interval '12 week')::DATE, d.org_date::DATE) pbh,
+      accumulated_billed_hours2((d.org_date::date - interval '12 week')::DATE, d.org_date::DATE) abh
   );
 end
-$function$;
+$function$ LANGUAGE plpgsql;
 
 -- Visibility - forecasted FG (based of 12 next weeks)
 
