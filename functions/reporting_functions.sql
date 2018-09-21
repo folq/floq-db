@@ -137,19 +137,3 @@ FROM
   );
 END
 $$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION accumulated_billed_hours(from_date date, to_date date)
-RETURNS TABLE (sum_available_hours numeric, sum_billable_hours numeric) AS
-$$
-BEGIN
-  RETURN QUERY (
-    SELECT
-         SUM(available_hours) :: numeric AS sum_available_hours,
-         SUM(billable_hours)  :: numeric AS sum_billable_hours
-       FROM time_tracking_status(from_date, to_date)
-      );
-END
-$$ LANGUAGE plpgsql;
-
-COMMIT;
