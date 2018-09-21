@@ -1,3 +1,22 @@
+CREATE OR REPLACE FUNCTION fg(start_date date, end_date date)
+RETURNS TABLE (
+  from_date date,
+  to_date date,
+  fg double precision
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+      start_date,
+      end_date,                          
+      100*(abh.sum_billable_hours / abh.sum_available_hours)::double precision AS fg
+    FROM
+      accumulated_billed_hours2(start_date, end_date) AS abh
+  );
+END
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION kpi_fg(in_start_date date, in_end_date date)
 RETURNS TABLE (
   from_date date,
@@ -11,12 +30,12 @@ BEGIN
 SELECT
   x.from_date,
   x.to_date,                                      
-  100*(actual.sum_billable_hours / actual.sum_available_hours) AS fg
+  fg.fg::double precision as fg
 FROM
   (
     SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
   ) x,
-   accumulated_billed_hours(x.from_date, x.to_date) actual
+   fg(x.from_date, x.to_date) fg
   );
 END
 $$ LANGUAGE plpgsql;
