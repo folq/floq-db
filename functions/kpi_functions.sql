@@ -311,7 +311,6 @@ begin
       (SELECT * from month_dates(start_date, end_date, interval '6' month)) d,
       accumulated_billed_hours2(d.from_date, d.to_date) abh,
       total_hours_on_project_in_period(d.from_date, d.to_date, 'FAG1000') f
-      
   );
 end
 $function$;
@@ -389,6 +388,62 @@ begin
 end
 $function$;
 
+-- Accumulated reconciliation for whole company 
+create or replace function accumulated_reconciliation(from_date date, to_date date)
+returns table (write_off bigint , hours bigint, amount numeric, amount_net numeric, count bigint, subcontractor_hours bigint, subcontractor_expense numeric, other_expense numeric) as
+$$
+begin
+return query (select 
+    SUM(write_off.minutes)/60 as write_off,
+    SUM(invoice_balance.minutes)/60 as hours,
+    SUM(invoice_balance.amount) as total_amount,
+    SUM(invoice_balance.amount) - (SUM(coalesce(invoice_expense.subcontractor_expense, 0)) + SUM(coalesce(invoice_expense.other_expense, 0))) as net_amount,
+    COUNT(*) as count,
+    SUM(CASE WHEN not invoice_expense.sum_expense ISNULL then invoice_balance.minutes else 0 end)/60 as subcontractor_hours,
+    SUM(coalesce(invoice_expense.subcontractor_expense, 0)) as subcontractor_expense,
+    SUM(coalesce(invoice_expense.other_expense, 0)) as other_expense
+from 
+    invoice_balance
+    LEFT JOIN
+        ( 
+            SELECT 
+                SUM(expense.amount) as sum_expense, 
+                SUM(CASE WHEN type = 'subcontractor' then expense.amount else 0 end) as subcontractor_expense,
+                SUM(CASE WHEN type = 'other' then expense.amount else 0 end) as other_expense,
+                invoice_balance
+            FROM expense
+            WHERE NOT type ISNULL
+            GROUP BY expense.invoice_balance
+        ) AS invoice_expense ON invoice_balance.id = invoice_expense.invoice_balance
+    LEFT JOIN write_off on write_off.invoice_balance = invoice_balance.id
+where
+    invoice_balance.date <= to_date and invoice_balance.date >= from_date
+);
+end
+$$ LANGUAGE plpgsql;
+-- Rolling "oppnådd timepris" over 6 months at a time
+create or replace function ot_rolling(from_date date, to_date date)
+returns table (write_off bigint , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
+$$
+begin
+return query (select 
+    ar.write_off,
+    ar.hours as invoice_hours,
+    ar.amount as amount_gross,
+    ar.amount_net,
+    ar.subcontractor_hours,
+    ar.subcontractor_expense,
+    month_dates.from_date as from_d,
+    month_dates.to_date as to_d,
+    x.sum_billable_hours as billable_hours,
+    (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
+from
+    (SELECT * FROM month_dates(from_date, to_date, interval '6' month)) month_dates,
+    accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
+    accumulated_billed_hours2(month_dates.from_date, month_dates.to_date) as x
+);
+end
+$$ LANGUAGE plpgsql;
 
 -- Forcasted Available Hours (FG Deviation / Forcasted FG)
 
