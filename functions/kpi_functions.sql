@@ -1,3 +1,22 @@
+CREATE OR REPLACE FUNCTION fg(start_date date, end_date date)
+RETURNS TABLE (
+  from_date date,
+  to_date date,
+  fg double precision
+) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+      start_date,
+      end_date,                          
+      100*(abh.sum_billable_hours / abh.sum_available_hours)::double precision AS fg
+    FROM
+      accumulated_billed_hours2(start_date, end_date) AS abh
+  );
+END
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION kpi_fg(in_start_date date, in_end_date date)
 RETURNS TABLE (
   from_date date,
@@ -11,12 +30,12 @@ BEGIN
 SELECT
   x.from_date,
   x.to_date,                                      
-  100*(actual.sum_billable_hours / actual.sum_available_hours) AS fg
+  fg.fg::double precision as fg
 FROM
   (
     SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
   ) x,
-   accumulated_billed_hours2(x.from_date, x.to_date) actual
+   fg(x.from_date, x.to_date) fg
   );
 END
 $$ LANGUAGE plpgsql;
@@ -130,7 +149,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION accumulated_billed_hours2(from_date date, to_date date)
+CREATE OR REPLACE FUNCTION accumulated_billed_hours(from_date date, to_date date)
 RETURNS TABLE (sum_available_hours double precision, sum_billable_hours numeric) AS
 $$
 BEGIN
@@ -286,7 +305,7 @@ begin
       abh.sum_available_hours
     FROM
       (SELECT * from month_dates(start_date, end_date, interval '6' month)) d,
-      accumulated_billed_hours2(d.from_date, d.to_date) abh,
+      accumulated_billed_hours(d.from_date, d.to_date) abh,
       total_hours_on_project_in_period(d.from_date, d.to_date, 'FAG1000') f
   );
 end
@@ -314,7 +333,7 @@ begin
           generate_series(start_date::timestamp, end_date::timestamp, '1 month') AS dd
       ) d,
       planned_billable_hours((d.org_date::date - interval '12 week')::DATE, d.org_date::DATE) pbh,
-      accumulated_billed_hours2((d.org_date::date - interval '12 week')::DATE, d.org_date::DATE) abh
+      accumulated_billed_hours((d.org_date::date - interval '12 week')::DATE, d.org_date::DATE) abh
   );
 end
 $function$ LANGUAGE plpgsql;
@@ -429,7 +448,7 @@ return query (select
 from
     (SELECT * FROM month_dates(from_date, to_date, interval '6' month)) month_dates,
     accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
-    accumulated_billed_hours2(month_dates.from_date, month_dates.to_date) as x
+    accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
 );
 end
 $$ LANGUAGE plpgsql;
