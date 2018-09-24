@@ -92,8 +92,7 @@ RETURNS TABLE (
   actual_fg numeric,
   deviation_available_hours numeric,
   deviation_billable_hours numeric,
-  deviation_fg numeric,
-  visibility numeric
+  deviation_fg numeric
 ) AS
 $$
 BEGIN
@@ -112,8 +111,7 @@ SELECT
   100*(actual.sum_billable_hours / actual.sum_available_hours)                        AS actual_fg,
   actual.sum_available_hours - planned.available_hours                                AS deviation_available_hours,
   actual.sum_billable_hours - planned.billable_hours                                  AS deviation_billable_hours,
-  100*((actual.sum_billable_hours - planned.billable_hours)/ planned.available_hours) AS deviation_fg,
-  v.visibility
+  100*((actual.sum_billable_hours - planned.billable_hours)/ planned.available_hours) AS deviation_fg
 FROM
   (SELECT
      tt.year                             AS year,
@@ -139,19 +137,3 @@ FROM
   );
 END
 $$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION accumulated_billed_hours(from_date date, to_date date)
-RETURNS TABLE (sum_available_hours numeric, sum_billable_hours numeric) AS
-$$
-BEGIN
-  RETURN QUERY (
-    SELECT
-         SUM(available_hours) :: numeric AS sum_available_hours,
-         SUM(billable_hours)  :: numeric AS sum_billable_hours
-       FROM time_tracking_status(from_date, to_date)
-      );
-END
-$$ LANGUAGE plpgsql;
-
-COMMIT;
