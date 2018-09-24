@@ -252,24 +252,6 @@ FROM
 END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION product_development_hours(from_date date, to_date date)
-RETURNS TABLE (
-hours numeric
-) AS
-$$
-BEGIN
-  RETURN QUERY (
-    SELECT
-      sum(minutes)/60.0 AS hours 
-    FROM
-      time_entry
-    WHERE
-      (project = 'INT1000' OR project = 'INT1004' OR project = 'INT1003') AND
-      (time_entry.date >= from_date AND time_entry.date <= to_date)
- );
-END
-$$ LANGUAGE plpgsql;
-
 -- Professional Development KPI
 
 CREATE OR REPLACE FUNCTION public.total_hours_on_project_in_period(start_date date, end_date date, project_code text)
@@ -535,4 +517,21 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- Hours spent on deductable projects
+create or replace function product_development_hours(from_date date, to_date date)
+returns table (hours numeric) as
+$$
+begin
+return query (
+SELECT 
+    SUM(time_entry.minutes)/60.0 AS hours
+FROM
+    projects JOIN time_entry ON time_entry.project = projects.id
+WHERE
+    date >= from_date 
+    AND date <= to_date
+    AND deductable = true
+);
+end
+$$ LANGUAGE plpgsql;
 
