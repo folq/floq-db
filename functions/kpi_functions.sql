@@ -9,8 +9,8 @@ BEGIN
   RETURN QUERY (
     SELECT
       start_date,
-      end_date,                          
-      100*(abh.sum_billable_hours / abh.sum_available_hours)::double precision AS fg
+      end_date,                        
+      (abh.sum_billable_hours / abh.sum_available_hours)*100::double precision AS fg
     FROM
       accumulated_billed_hours(start_date, end_date) AS abh
   );
@@ -26,38 +26,37 @@ RETURNS TABLE (
 $$
 BEGIN
   RETURN QUERY (
-
 SELECT
   x.from_date,
-  x.to_date,                                      
+  x.to_date,
   fg.fg::double precision as fg
 FROM
   (
-    SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
+    SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
   ) x,
-   fg(x.from_date, x.to_date) fg
+    fg(x.from_date, x.to_date) fg
   );
 END
-$$ LANGUAGE plpgsql;
+$$LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION kpi_product_development(in_start_date date, in_end_date date)
 RETURNS TABLE (
- from_date date,
- to_date date,
- payload numeric
+  from_date date,
+  to_date date,
+  payload numeric
 ) AS
 $$
 BEGIN
- RETURN QUERY (
+  RETURN QUERY (
 SELECT
- x.from_date,
- x.to_date,
- hours
+  x.from_date,
+  x.to_date,
+  hours
 FROM
- (
-   SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
- ) AS x, 
-   product_development_hours(x.from_date, x.to_date) AS hours   
+  (
+    SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
+  ) AS x,
+  product_development_hours(x.from_date, x.to_date) AS hours
 GROUP BY x.from_date, x.to_date, hours.hours
 );
 END
@@ -74,15 +73,15 @@ $$
 BEGIN
  RETURN QUERY (
 SELECT
- x.from_date,
- x.to_date,
- sick_hours / sum_business_hours
+  x.from_date,
+  x.to_date,
+  sick_hours / sum_business_hours
 FROM
- (
-   SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
- ) AS x, 
- sum_business_hours(x.from_date, x.to_date),
- sick_hours(x.from_date, x.to_date)
+  (
+    SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
+  ) AS x,
+  sum_business_hours(x.from_date, x.to_date),
+  sick_hours(x.from_date, x.to_date)
 GROUP BY x.from_date, x.to_date, sum_business_hours, sick_hours
 );
 END
@@ -99,14 +98,14 @@ $$
 BEGIN
  RETURN QUERY (
 SELECT
- x.from_date,
- x.to_date,
- sum(subcontractor_money) / sum(invoice_balance_money)
+  x.from_date,
+  x.to_date,
+  sum(subcontractor_money) / sum(invoice_balance_money)
 FROM
- (
-   SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
- ) AS x, 
-   hours_per_project(x.from_date, x.to_date) AS hours_per_project   
+  (
+    SELECT * from month_dates(in_from_date, in_to_date, interval '6' month)
+  ) AS x,
+  hours_per_project(x.from_date, x.to_date) AS hours_per_project
 GROUP BY x.from_date, x.to_date
 );
 END
@@ -392,22 +391,22 @@ return query (select
     SUM(CASE WHEN not invoice_expense.sum_expense ISNULL then invoice_balance.minutes else 0 end)/60 as subcontractor_hours,
     SUM(coalesce(invoice_expense.subcontractor_expense, 0)) as subcontractor_expense,
     SUM(coalesce(invoice_expense.other_expense, 0)) as other_expense
-from 
+from
     invoice_balance
-    LEFT JOIN
-        ( 
-            SELECT 
-                SUM(expense.amount) as sum_expense, 
+    LEFT JOIN
+        (
+          SELECT
+              SUM(expense.amount) as sum_expense,
                 SUM(CASE WHEN type = 'subcontractor' then expense.amount else 0 end) as subcontractor_expense,
                 SUM(CASE WHEN type = 'other' then expense.amount else 0 end) as other_expense,
                 invoice_balance
-            FROM expense
-            WHERE NOT type ISNULL
-            GROUP BY expense.invoice_balance
-        ) AS invoice_expense ON invoice_balance.id = invoice_expense.invoice_balance
-    LEFT JOIN write_off on write_off.invoice_balance = invoice_balance.id
+          FROM expense
+          WHERE NOT type ISNULL
+          GROUP BY expense.invoice_balance
+    ) AS invoice_expense ON invoice_balance.id = invoice_expense.invoice_balance
+    LEFT JOIN write_off on write_off.invoice_balance = invoice_balance.id
 where
-    invoice_balance.date <= to_date and invoice_balance.date >= from_date
+    invoice_balance.date <= to_date and invoice_balance.date >= from_date
 );
 end
 $$ LANGUAGE plpgsql;
@@ -417,20 +416,20 @@ returns table (write_off bigint , invoice_hours bigint, amount_gross numeric, am
 $$
 begin
 return query (select 
-    ar.write_off,
-    ar.hours as invoice_hours,
-    ar.amount as amount_gross,
-    ar.amount_net,
-    ar.subcontractor_hours,
-    ar.subcontractor_expense,
-    month_dates.from_date as from_d,
-    month_dates.to_date as to_d,
-    x.sum_billable_hours as billable_hours,
-    (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
+    ar.write_off,
+    ar.hours as invoice_hours,
+    ar.amount as amount_gross,
+    ar.amount_net,
+    ar.subcontractor_hours,
+    ar.subcontractor_expense,
+    month_dates.from_date as from_d,
+    month_dates.to_date as to_d,
+    x.sum_billable_hours as billable_hours,
+    (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
 from
-    (SELECT * FROM month_dates(from_date, to_date, interval '6' month)) month_dates,
-    accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
-    accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
+    (SELECT * FROM month_dates(from_date, to_date, interval '6' month)) month_dates,
+    accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
+    accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
 );
 end
 $$ LANGUAGE plpgsql;
@@ -524,14 +523,14 @@ $$
 begin
 return query (
 SELECT 
-    SUM(time_entry.minutes)/60.0 AS hours
+    SUM(time_entry.minutes)/60.0 AS hours
 FROM
-    projects JOIN time_entry ON time_entry.project = projects.id
+    projects JOIN time_entry ON time_entry.project = projects.id
 WHERE
-    date >= from_date 
-    AND date <= to_date
-    AND deductable = true
-);
+    date >= from_date 
+    AND date <= to_date
+    AND deductable = true
+    );
 end
 $$ LANGUAGE plpgsql;
 
