@@ -254,7 +254,7 @@ $$ LANGUAGE plpgsql;
 
 -- Professional Development KPI
 
-CREATE OR REPLACE FUNCTION public.total_hours_on_project_in_period(start_date date, end_date date, project_code text)
+CREATE OR REPLACE FUNCTION total_hours_on_project_in_period(start_date date, end_date date, project_code text)
 RETURNS TABLE(project_hours double precision)
 LANGUAGE plpgsql
 STABLE STRICT
@@ -273,7 +273,7 @@ end
 $function$;
 
 
-CREATE OR REPLACE FUNCTION public.kpi_prodev(start_date date, end_date date)
+CREATE OR REPLACE FUNCTION kpi_prodev(start_date date, end_date date)
   RETURNS TABLE(from_date date, to_date date, percent double precision, project_hours double precision, available_hours double precision)
   LANGUAGE plpgsql
 AS $function$
@@ -295,7 +295,7 @@ $function$;
 
 -- FG Deviation
 
-CREATE OR REPLACE FUNCTION public.kpi_fgdev(start_date date, end_date date)
+CREATE OR REPLACE FUNCTION kpi_fgdev(start_date date, end_date date)
   RETURNS TABLE(from_date date, to_date date, blanned_billable_hours double precision, achieved_billable_hours double precision, deviation double precision)
 AS $function$
 begin
@@ -341,7 +341,7 @@ END
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION public.forcasted_fg_in_period(start_date date, end_date date)
+CREATE OR REPLACE FUNCTION forcasted_fg_in_period(start_date date, end_date date)
   RETURNS TABLE(planned_billable_hours double precision, available_hours double precision, percent double precision)
   LANGUAGE plpgsql
 AS $function$
@@ -359,7 +359,7 @@ end
 $function$;
 
 
-CREATE OR REPLACE FUNCTION public.kpi_visibility(start_date date, end_date date)
+CREATE OR REPLACE FUNCTION kpi_visibility(start_date date, end_date date)
   RETURNS TABLE(from_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
   LANGUAGE plpgsql
 AS $function$
