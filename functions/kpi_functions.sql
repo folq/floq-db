@@ -12,7 +12,7 @@ BEGIN
       end_date,                          
       100*(abh.sum_billable_hours / abh.sum_available_hours)::double precision AS fg
     FROM
-      accumulated_billed_hours2(start_date, end_date) AS abh
+      accumulated_billed_hours(start_date, end_date) AS abh
   );
 END
 $$ LANGUAGE plpgsql;
