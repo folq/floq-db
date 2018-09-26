@@ -243,7 +243,7 @@ FROM
     FROM
       time_entry
     WHERE
-      (project = 'SYK1000' OR project = 'SYK1001' OR project = 'SYK1002') AND
+      (project = 'SYK1000') AND
       (time_entry.date >= start_date AND time_entry.date <= end_date)
   ) tt
 );
