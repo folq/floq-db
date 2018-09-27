@@ -9,15 +9,15 @@ BEGIN
   RETURN QUERY (
     SELECT
       start_date,
-      end_date,                        
-      (abh.sum_billable_hours / abh.sum_available_hours)*100::double precision AS fg
+      end_date,
+      100*(abh.sum_billable_hours / abh.sum_available_hours)::double precision AS fg
     FROM
       accumulated_billed_hours(start_date, end_date) AS abh
   );
 END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION kpi_fg(in_start_date date, in_end_date date)
+CREATE OR REPLACE FUNCTION kpi_fg(in_start_date date, in_end_date date, num_months int DEFAULT 6)
 RETURNS TABLE (
   from_date date,
   to_date date,
@@ -32,7 +32,7 @@ SELECT
   fg.fg::double precision as fg
 FROM
   (
-    SELECT * from month_dates(in_start_date, in_end_date, interval '6' month)
+    SELECT * from month_dates(in_start_date, in_end_date, (num_months || ' month')::INTERVAL)
   ) x,
     fg(x.from_date, x.to_date) fg
   );
@@ -118,7 +118,7 @@ $$ LANGUAGE plpgsql;
 -- HELPERS
 CREATE OR REPLACE FUNCTION sum_business_hours(in_from_date date, in_to_date date)
 RETURNS TABLE (
-	sum_business_hours double precision
+  sum_business_hours double precision
 ) AS
 $$
 BEGIN
@@ -129,7 +129,7 @@ SELECT
 FROM
   (
   	SELECT 
-      business_hours 
+      business_hours
     FROM 
 		(
 			SELECT 
@@ -154,16 +154,16 @@ $$
 BEGIN
   RETURN QUERY (
     SELECT
-         sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
-         SUM(minutes/60.0)  :: numeric AS sum_billable_hours
-    FROM 
-     sum_business_hours(from_date, to_date), 
-     unavailable_time_entry_hours(from_date, to_date),
-     time_entry
+        sum_business_hours - unavailable_hours :: double precision AS sum_available_hours,
+        SUM(minutes/60.0)  :: numeric AS sum_billable_hours
+    FROM
+      sum_business_hours(from_date, to_date),
+      unavailable_time_entry_hours(from_date, to_date),
+      time_entry
     JOIN projects ON
       projects.id = time_entry.project AND
       projects.billable = 'billable' AND
-      time_entry.date <= to_date and time_entry.date >= from_date 
+      time_entry.date <= to_date and time_entry.date >= from_date
     GROUP BY (sum_business_hours, unavailable_hours)) LIMIT 1;
 END
 $$ LANGUAGE plpgsql;
@@ -229,14 +229,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION sick_hours(start_date date, end_date date)
 RETURNS TABLE (
-sick_hours numeric
+  sick_hours numeric
 ) AS
 $$
 BEGIN
   RETURN QUERY (
-
 SELECT
-  tt.sick
+  tt.sick
 FROM
   (
     SELECT
@@ -244,10 +243,10 @@ FROM
     FROM
       time_entry
     WHERE
-      (project = 'SYK1000' OR project = 'SYK1001' OR project = 'SYK1002') AND
+      (project = 'SYK1000') AND
       (time_entry.date >= start_date AND time_entry.date <= end_date)
-  ) tt  
- );
+  ) tt
+);
 END
 $$ LANGUAGE plpgsql;
 
@@ -348,7 +347,7 @@ begin
   return query (
     SELECT
       pbh.billable_hours::double precision,
-      fah.available_hours::double precision,    
+      fah.available_hours::double precision,
       (pbh.billable_hours/fah.available_hours)*100::double precision as percentage_billable
     FROM
     forcasted_available_hours(start_date, end_date) fah,
@@ -383,23 +382,23 @@ returns table (write_off bigint , hours bigint, amount numeric, amount_net numer
 $$
 begin
 return query (select 
-    SUM(write_off.minutes)/60 as write_off,
-    SUM(invoice_balance.minutes)/60 as hours,
-    SUM(invoice_balance.amount) as total_amount,
-    SUM(invoice_balance.amount) - (SUM(coalesce(invoice_expense.subcontractor_expense, 0)) + SUM(coalesce(invoice_expense.other_expense, 0))) as net_amount,
-    COUNT(*) as count,
-    SUM(CASE WHEN not invoice_expense.sum_expense ISNULL then invoice_balance.minutes else 0 end)/60 as subcontractor_hours,
-    SUM(coalesce(invoice_expense.subcontractor_expense, 0)) as subcontractor_expense,
-    SUM(coalesce(invoice_expense.other_expense, 0)) as other_expense
+    SUM(write_off.minutes)/60 as write_off,
+    SUM(invoice_balance.minutes)/60 as hours,
+    SUM(invoice_balance.amount) as total_amount,
+    SUM(invoice_balance.amount) - (SUM(coalesce(invoice_expense.subcontractor_expense, 0)) + SUM(coalesce(invoice_expense.other_expense, 0))) as net_amount,
+    COUNT(*) as count,
+    SUM(CASE WHEN not invoice_expense.sum_expense ISNULL then invoice_balance.minutes else 0 end)/60 as subcontractor_hours,
+    SUM(coalesce(invoice_expense.subcontractor_expense, 0)) as subcontractor_expense,
+    SUM(coalesce(invoice_expense.other_expense, 0)) as other_expense
 from
-    invoice_balance
+    invoice_balance
     LEFT JOIN
         (
           SELECT
               SUM(expense.amount) as sum_expense,
-                SUM(CASE WHEN type = 'subcontractor' then expense.amount else 0 end) as subcontractor_expense,
-                SUM(CASE WHEN type = 'other' then expense.amount else 0 end) as other_expense,
-                invoice_balance
+              SUM(CASE WHEN type = 'subcontractor' then expense.amount else 0 end) as subcontractor_expense,
+              SUM(CASE WHEN type = 'other' then expense.amount else 0 end) as other_expense,
+              invoice_balance
           FROM expense
           WHERE NOT type ISNULL
           GROUP BY expense.invoice_balance
@@ -411,11 +410,11 @@ where
 end
 $$ LANGUAGE plpgsql;
 -- Rolling "oppnådd timepris" over 6 months at a time
-create or replace function ot_rolling(from_date date, to_date date)
+create or replace function ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
 returns table (write_off bigint , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
 $$
 begin
-return query (select 
+return query (select
     ar.write_off,
     ar.hours as invoice_hours,
     ar.amount as amount_gross,
@@ -427,7 +426,7 @@ return query (select
     x.sum_billable_hours as billable_hours,
     (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
 from
-    (SELECT * FROM month_dates(from_date, to_date, interval '6' month)) month_dates,
+    (SELECT * FROM month_dates(from_date, to_date, (num_months || ' month')::interval)) month_dates,
     accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
     accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
 );

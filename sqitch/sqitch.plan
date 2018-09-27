@@ -69,3 +69,4 @@ vacation_days 2018-08-31T08:15:48Z Magne Davidsen <magne.davidsen@blank.no> # Ad
 vacation_days_fix 2018-09-04T20:19:19Z Magne Davidsen <magne.davidsen@blank.no> # Fix bug in vacation days
 vacation_days_fix_pt2 2018-09-12T11:20:30Z Magne Davidsen <magne.davidsen@blank.no> # Selecting years employee has been employed correctly
 alter_table_employees_add_column_has_permanent_position 2018-09-04T14:30:52Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new colum has_permanent_position to employees table
+alter_table_projects_add_deductable_flag 2018-09-14T13:35:46Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add deductable column to mark projects deductable/refundable
