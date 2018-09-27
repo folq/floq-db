@@ -359,20 +359,20 @@ $function$;
 
 
 CREATE OR REPLACE FUNCTION kpi_visibility(start_date date, end_date date)
-  RETURNS TABLE(from_date date, to_date date, planned_billable_hours double precision, available_hours double precision, percent double precision)
+  RETURNS TABLE(week integer, year integer, week_date date, percent double precision)
   LANGUAGE plpgsql
 AS $function$
 begin
   return query (
     SELECT
-      gds.from_date::DATE as from_date,
-      (gds.from_date + interval '12 weeks')::DATE to_date,
-      ffg.planned_billable_hours::double precision,
-      ffg.available_hours::double precision,
-      ffg.percent::double precision
+      rv.week::integer,
+      rv.year::integer,
+      to_date(rv.year || '-' || rv.week, 'iyyy-iw')::DATE as week_date,
+      (rv.billable_hours/rv.available_hours)*100::double precision as percent
     FROM
-    (SELECT * FROM generate_series(date_trunc('MONTH', start_date::timestamp), date_trunc('MONTH', end_date::timestamp), '1 month') as from_date) gds,
-    forcasted_fg_in_period(gds.from_date::DATE, (gds.from_date + interval '12 weeks')::DATE) ffg
+        reporting_visibility as rv
+    WHERE
+      to_date(rv.year || '-' || rv.week, 'iyyy-iw')::DATE BETWEEN start_date AND end_date
   );
 end
 $function$;
