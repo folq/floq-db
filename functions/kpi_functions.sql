@@ -533,3 +533,44 @@ WHERE
 end
 $$ LANGUAGE plpgsql;
 
+-- Accumulated Date Periods generates date series that are compatible for monthly aggregates in each year starting
+-- from from_date to end_date
+CREATE OR REPLACE FUNCTION accumulated_date_periods(from_date date, to_date date)
+  RETURNS TABLE (start_date date, end_date date) AS
+$$
+BEGIN
+  RETURN QUERY (
+  	SELECT
+  		year.start_date::DATE,
+  		yms.to_date::DATE
+  	FROM
+  		(
+		  	SELECT
+		  		greatest(yds, from_date)::DATE AS start_date,
+		  		least((yds + '1 year' :: interval - '1 day' :: interval), to_date)::DATE AS end_date
+			FROM
+				generate_series(make_date(date_part('year', from_date)::integer, 1, 1), to_date::DATE, '1 year' :: interval) yds
+		) year,
+		month_dates((year.start_date + '1 month'::interval)::DATE, (year.end_date + '1 month'::interval)::DATE, '1 month'::interval) yms
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+
+-- Accumualted FG
+CREATE OR REPLACE FUNCTION kpi_accumulated_fg(from_date date, to_date date)
+  RETURNS TABLE (sum_start_date date, sum_end_date date, summed_fg double precision) AS
+$$
+BEGIN
+  RETURN QUERY (
+  	SELECT
+  		adp.start_date::DATE AS sum_start_date,
+  		adp.end_date::DATE AS sum_end_date,
+  		acc_fg.fg::double precision AS summed_fg
+	FROM
+		accumulated_date_periods(from_date, to_date) adp,
+		fg(adp.start_date::DATE, adp.end_date::DATE) as acc_fg
+  );
+END
+$$ LANGUAGE plpgsql;
