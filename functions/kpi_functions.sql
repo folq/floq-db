@@ -409,27 +409,52 @@ where
 );
 end
 $$ LANGUAGE plpgsql;
--- Rolling "oppnådd timepris" over 6 months at a time
-create or replace function ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
-returns table (write_off bigint , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
+
+-- OT in period from_date -> to_date
+CREATE OR REPLACE FUNCTION ot(from_date date, to_date date)
+RETURNS TABLE (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, billable_hours numeric, ot numeric) AS
 $$
-begin
-return query (select
-    ar.write_off,
-    ar.hours as invoice_hours,
-    ar.amount as amount_gross,
-    ar.amount_net,
-    ar.subcontractor_hours,
-    ar.subcontractor_expense,
-    month_dates.from_date as from_d,
-    month_dates.to_date as to_d,
-    x.sum_billable_hours as billable_hours,
-    (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
-from
-    (SELECT * FROM month_dates(from_date, to_date, (num_months || ' month')::interval)) month_dates,
-    accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
-    accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
-);
+BEGIN
+RETURN QUERY (
+    SELECT
+        ar.write_off::numeric,
+        ar.hours::bigint AS invoice_hours,
+        ar.amount::numeric AS amount_gross,
+        ar.amount_net::numeric,
+        ar.subcontractor_hours::bigint,
+        ar.subcontractor_expense::numeric,
+        abh.sum_billable_hours::numeric AS billable_hours,
+        ((ar.amount - (ar.subcontractor_expense+ar.other_expense)) / abh.sum_billable_hours)::numeric AS ot
+    FROM
+        accumulated_reconciliation(from_date, to_date) AS ar,
+        accumulated_billed_hours(from_date, to_date) AS abh
+    );
+end
+$$ LANGUAGE plpgsql;
+
+-- Rolling "oppnådd timepris" over 6 months at a time
+CREATE OR REPLACE FUNCTION ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
+RETURNS TABLE (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) AS
+$$
+BEGIN
+RETURN QUERY (
+    SELECT
+        ot.write_off::numeric,
+        ot.invoice_hours::bigint,
+        ot.amount_gross::numeric,
+        ot.amount_net::numeric,
+        ot.subcontractor_hours::bigint,
+        ot.subcontractor_expense::numeric,
+        month_dates.from_date AS from_d,
+        month_dates.to_date AS to_d,
+        ot.billable_hours::numeric,
+        ot.ot::numeric
+    FROM
+        (
+            SELECT * FROM month_dates(from_date, to_date, (num_months || ' month')::interval)
+        ) month_dates,
+        ot(month_dates.from_date, month_dates.to_date) AS ot
+    );
 end
 $$ LANGUAGE plpgsql;
 
