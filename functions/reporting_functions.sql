@@ -87,10 +87,10 @@ RETURNS TABLE (
   available_hours numeric,
   billable_hours numeric,
   planned_fg numeric,
-  actual_available_hours numeric,
+  actual_available_hours double precision,
   actual_billable_hours numeric,
-  actual_fg numeric,
-  deviation_available_hours numeric,
+  actual_fg double precision,
+  deviation_available_hours double precision,
   deviation_billable_hours numeric,
   deviation_fg numeric
 ) AS
