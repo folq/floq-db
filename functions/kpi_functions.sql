@@ -610,11 +610,11 @@ CREATE OR REPLACE FUNCTION kpi_accumulated_ot(from_date date, to_date date)
 $$
 BEGIN
   RETURN QUERY (
-    SELECT
+  SELECT
       adp.start_date::DATE AS sum_start_date,
       adp.end_date::DATE AS sum_end_date,
       acc_ot.ot::double precision AS summed_fg
-  FROM
+  FROM
     accumulated_date_periods(from_date, to_date) adp,
     ot(adp.start_date::DATE, adp.end_date::DATE) as acc_ot
   );
