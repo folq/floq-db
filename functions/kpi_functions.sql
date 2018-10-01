@@ -378,11 +378,11 @@ $function$;
 
 -- Accumulated reconciliation for whole company 
 create or replace function accumulated_reconciliation(from_date date, to_date date)
-returns table (write_off bigint , hours bigint, amount numeric, amount_net numeric, count bigint, subcontractor_hours bigint, subcontractor_expense numeric, other_expense numeric) as
+returns table (write_off numeric , hours bigint, amount numeric, amount_net numeric, count bigint, subcontractor_hours bigint, subcontractor_expense numeric, other_expense numeric) as
 $$
 begin
 return query (select 
-    SUM(write_off.minutes)/60 as write_off,
+    SUM(summed_write_off.minutes)/60 as write_off,
     SUM(invoice_balance.minutes)/60 as hours,
     SUM(invoice_balance.amount) as total_amount,
     SUM(invoice_balance.amount) - (SUM(coalesce(invoice_expense.subcontractor_expense, 0)) + SUM(coalesce(invoice_expense.other_expense, 0))) as net_amount,
@@ -403,15 +403,18 @@ from
           WHERE NOT type ISNULL
           GROUP BY expense.invoice_balance
     ) AS invoice_expense ON invoice_balance.id = invoice_expense.invoice_balance
-    LEFT JOIN write_off on write_off.invoice_balance = invoice_balance.id
-where
+    LEFT JOIN
+    	(
+        SELECT invoice_balance, sum(minutes) as minutes FROM write_off wo GROUP BY wo.invoice_balance
+    ) AS summed_write_off ON summed_write_off.invoice_balance = invoice_balance.id
+WHERE
     invoice_balance.date <= to_date and invoice_balance.date >= from_date
 );
 end
 $$ LANGUAGE plpgsql;
 -- Rolling "oppnådd timepris" over 6 months at a time
 create or replace function ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
-returns table (write_off bigint , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
+returns table (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
 $$
 begin
 return query (select
