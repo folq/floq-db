@@ -412,27 +412,52 @@ WHERE
 );
 end
 $$ LANGUAGE plpgsql;
--- Rolling "oppnådd timepris" over 6 months at a time
-create or replace function ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
-returns table (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) as
+
+-- OT in period from_date -> to_date
+CREATE OR REPLACE FUNCTION ot(from_date date, to_date date)
+RETURNS TABLE (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, billable_hours numeric, ot numeric) AS
 $$
-begin
-return query (select
-    ar.write_off,
-    ar.hours as invoice_hours,
-    ar.amount as amount_gross,
-    ar.amount_net,
-    ar.subcontractor_hours,
-    ar.subcontractor_expense,
-    month_dates.from_date as from_d,
-    month_dates.to_date as to_d,
-    x.sum_billable_hours as billable_hours,
-    (ar.amount - (ar.subcontractor_expense+ar.other_expense)) / x.sum_billable_hours as ot
-from
-    (SELECT * FROM month_dates(from_date, to_date, (num_months || ' month')::interval)) month_dates,
-    accumulated_reconciliation(month_dates.from_date, month_dates.to_date) as ar,
-    accumulated_billed_hours(month_dates.from_date, month_dates.to_date) as x
-);
+BEGIN
+RETURN QUERY (
+    SELECT
+        ar.write_off::numeric,
+        ar.hours::bigint AS invoice_hours,
+        ar.amount::numeric AS amount_gross,
+        ar.amount_net::numeric,
+        ar.subcontractor_hours::bigint,
+        ar.subcontractor_expense::numeric,
+        abh.sum_billable_hours::numeric AS billable_hours,
+        ((ar.amount - (ar.subcontractor_expense+ar.other_expense)) / abh.sum_billable_hours)::numeric AS ot
+    FROM
+        accumulated_reconciliation(from_date, to_date) AS ar,
+        accumulated_billed_hours(from_date, to_date) AS abh
+    );
+end
+$$ LANGUAGE plpgsql;
+
+-- Rolling "oppnådd timepris" over 6 months at a time
+CREATE OR REPLACE FUNCTION ot_rolling(from_date date, to_date date, num_months int DEFAULT 6)
+RETURNS TABLE (write_off numeric , invoice_hours bigint, amount_gross numeric, amount_net numeric, subcontractor_hours bigint, subcontractor_expense numeric, from_d date, to_d date, billable_hours numeric, ot numeric) AS
+$$
+BEGIN
+RETURN QUERY (
+    SELECT
+        ot.write_off::numeric,
+        ot.invoice_hours::bigint,
+        ot.amount_gross::numeric,
+        ot.amount_net::numeric,
+        ot.subcontractor_hours::bigint,
+        ot.subcontractor_expense::numeric,
+        month_dates.from_date AS from_d,
+        month_dates.to_date AS to_d,
+        ot.billable_hours::numeric,
+        ot.ot::numeric
+    FROM
+        (
+            SELECT * FROM month_dates(from_date, to_date, (num_months || ' month')::interval)
+        ) month_dates,
+        ot(month_dates.from_date, month_dates.to_date) AS ot
+    );
 end
 $$ LANGUAGE plpgsql;
 
@@ -536,3 +561,62 @@ WHERE
 end
 $$ LANGUAGE plpgsql;
 
+-- Accumulated Date Periods generates date series that are compatible for monthly aggregates in each year starting
+-- from from_date to end_date
+CREATE OR REPLACE FUNCTION accumulated_date_periods(from_date date, to_date date)
+  RETURNS TABLE (start_date date, end_date date) AS
+$$
+BEGIN
+  RETURN QUERY (
+  	SELECT
+  		year.start_date::DATE,
+  		yms.to_date::DATE
+  	FROM
+  		(
+		  	SELECT
+		  		greatest(yds, from_date)::DATE AS start_date,
+		  		least((yds + '1 year' :: interval - '1 day' :: interval), to_date)::DATE AS end_date
+			FROM
+				generate_series(make_date(date_part('year', from_date)::integer, 1, 1), to_date::DATE, '1 year' :: interval) yds
+		) year,
+		month_dates((year.start_date + '1 month'::interval)::DATE, (year.end_date + '1 month'::interval)::DATE, '1 month'::interval) yms
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+
+-- Accumualted FG
+CREATE OR REPLACE FUNCTION kpi_accumulated_fg(from_date date, to_date date)
+  RETURNS TABLE (sum_start_date date, sum_end_date date, summed_fg double precision) AS
+$$
+BEGIN
+  RETURN QUERY (
+  	SELECT
+  		adp.start_date::DATE AS sum_start_date,
+  		adp.end_date::DATE AS sum_end_date,
+  		acc_fg.fg::double precision AS summed_fg
+	FROM
+		accumulated_date_periods(from_date, to_date) adp,
+		fg(adp.start_date::DATE, adp.end_date::DATE) as acc_fg
+  );
+END
+$$ LANGUAGE plpgsql;
+
+
+-- Accumulated OT
+CREATE OR REPLACE FUNCTION kpi_accumulated_ot(from_date date, to_date date)
+  RETURNS TABLE (sum_start_date date, sum_end_date date, summed_ot double precision) AS
+$$
+BEGIN
+  RETURN QUERY (
+    SELECT
+      adp.start_date::DATE AS sum_start_date,
+      adp.end_date::DATE AS sum_end_date,
+      acc_ot.ot::double precision AS summed_fg
+  FROM
+    accumulated_date_periods(from_date, to_date) adp,
+    ot(adp.start_date::DATE, adp.end_date::DATE) as acc_ot
+  );
+END
+$$ LANGUAGE plpgsql;
