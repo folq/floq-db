@@ -71,3 +71,4 @@ vacation_days_fix_pt2 2018-09-12T11:20:30Z Magne Davidsen <magne.davidsen@blank.
 alter_table_employees_add_column_has_permanent_position 2018-09-04T14:30:52Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new colum has_permanent_position to employees table
 alter_table_projects_add_deductable_flag 2018-09-14T13:35:46Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add deductable column to mark projects deductable/refundable
 add_talks_table 2018-10-09T07:49:56Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new talks table
+alter_reporting_visibility_remove_next_week_and_add_unavailable_hours 2018-10-03T09:36:11Z Ole Christer Selvig <ocselvig@Oles-MacBook-Pro.local> # Modify reporting_visibility TABLE; remove next_week_billable_hours and next_week_available_hours, and add unavailable_hours
