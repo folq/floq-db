@@ -526,13 +526,13 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION forcasted_available_hours(start_date date, end_date date)
-  RETURNS TABLE (all_hours double precision, unavil_staffing_hours double precision, unavail_absence_hours double precision, available_hours double precision) AS
+  RETURNS TABLE (all_hours double precision, unavail_staffing_hours double precision, unavail_absence_hours double precision, available_hours double precision) AS
 $$
 BEGIN
   RETURN QUERY (
   SELECT
     ewd.hours::double precision as all_hours,
-    usd.hours::double precision as unavil_staffing_hours,
+    usd.hours::double precision as unavail_staffing_hours,
     abs.hours::double precision as unavail_absence_hours,
     (ewd.hours - usd.hours - abs.hours)::double precision as available_hours
   FROM
