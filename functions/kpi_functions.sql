@@ -627,7 +627,7 @@ $$ LANGUAGE plpgsql;
 -- and is the ONLY employee to do so for current and preivous month (2 months aggregate)
 
 CREATE OR REPLACE FUNCTION unaccompanied_customer_involvement_kpi(in_from_date date, in_to_date date)
-RETURNS TABLE (from_date date, to_date date, unaccompanied_customer_involvement_percent double precision) AS 
+RETURNS TABLE (from_date date, to_date date, percent double precision) AS 
 $$
 BEGIN
 	RETURN QUERY (
