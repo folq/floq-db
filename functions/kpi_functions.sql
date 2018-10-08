@@ -620,3 +620,90 @@ BEGIN
   );
 END
 $$ LANGUAGE plpgsql;
+
+
+-- Unaccompanied Customer Involvement KPI
+-- Employees who have registered more than 50% of their available hours at one specific customer (FG)
+-- and is the ONLY employee to do so for current and preivous month (2 months aggregate)
+
+CREATE OR REPLACE FUNCTION unaccompanied_customer_involvement_kpi(in_from_date date, in_to_date date)
+RETURNS TABLE (from_date date, to_date date, unaccompanied_customer_involvement_percent double precision) AS 
+$$
+BEGIN
+	RETURN QUERY (
+		SELECT
+			x.from_date,
+			x.to_date,
+			COUNT(ae.employee_count) / t.employee_count :: double precision
+		FROM 
+			month_dates(in_from_date, in_to_date, interval '2' month) x,
+			unaccompanied_customer_involvement_in_period(x.from_date, x.to_date) ae,
+			number_of_employees_in_period(x.from_date, x.to_date) t
+		GROUP BY x.from_date, x.to_date, t.employee_count
+		ORDER BY x.from_date
+	);
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION unaccompanied_customer_involvement_in_period(from_date date, to_date date)
+RETURNS TABLE (customer_id text, employee_count integer) AS 
+$$ 
+BEGIN 
+	RETURN QUERY (
+		SELECT
+			qq.customer_id::text, 
+			sum(employee_id)::integer as employee_id
+		FROM
+			(
+			SELECT 
+				*,
+				(q.billable_hours / (q.business_hours - q.unavailable_hours)) AS fg
+			FROM
+			(
+				SELECT
+					projects.customer AS customer_id,
+					employees.id AS employee_id,
+					SUM(CASE WHEN projects.billable = 'billable' THEN time_entry.minutes ELSE 0.0 END)/60 AS billable_hours,
+					SUM(CASE WHEN projects.billable = 'unavailable' THEN time_entry.minutes ELSE 0.0 END)/60.0 AS unavailable_hours,
+					(SELECT * FROM business_hours(greatest(from_date, employees.date_of_employment),least(employees.termination_date, to_date))) AS business_hours
+				FROM
+					employees,
+					time_entry,
+					projects
+				WHERE
+					time_entry.date BETWEEN from_date AND to_date AND
+					time_entry.employee = employees.id AND
+					time_entry.project = projects.id
+				GROUP BY projects.customer, employees.id
+			) q
+			WHERE
+				q.billable_hours > 0
+			) qq
+		WHERE
+			qq.fg > 0.5
+		GROUP BY qq.customer_id
+		HAVING COUNT(qq.customer_id) = 1
+	);
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION number_of_employees_in_period(from_date date, to_date date)
+RETURNS TABLE (employee_count bigint) AS 
+$$ 
+BEGIN 
+	RETURN QUERY (
+		SELECT 
+			COUNT(*)
+		FROM 
+			employees
+		WHERE 
+			date_of_employment <= to_date AND 
+			(termination_date >= from_date or termination_date is null) AND 
+			has_permanent_position is TRUE
+	);
+END
+$$ LANGUAGE plpgsql;
+
+
