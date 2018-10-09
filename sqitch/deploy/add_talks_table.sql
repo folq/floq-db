@@ -13,7 +13,7 @@ CREATE TABLE talks (
     description text,
     location text NOT NULL,
     created timestamp without time zone NOT NULL DEFAULT now(),
-    id integer PRIMARY KEY
+    id SERIAL PRIMARY KEY
 );
 
 COMMIT;
