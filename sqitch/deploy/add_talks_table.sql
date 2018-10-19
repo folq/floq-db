@@ -10,6 +10,7 @@ BEGIN;
 CREATE TABLE talks (
     employee integer REFERENCES employees(id),
     talk_date date NOT NULL,
+    title text NOT NULL,
     description text,
     location text NOT NULL,
     created timestamp without time zone NOT NULL DEFAULT now(),

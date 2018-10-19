@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT id, employee, description, location, talk_date, created FROM talks;
+SELECT id, employee, title, description, location, talk_date, created FROM talks;
 
 ROLLBACK;
