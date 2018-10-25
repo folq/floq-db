@@ -1,25 +1,21 @@
-
 -- Sums all entries grouped by DATE and PROJECT 
-CREATE OR REPLACE FUNCTION public.entries_sums_for_employee_with_project(employee_id int, from_date date, to_date date)
-returns table (work_date date, project text, hours numeric, employeeId int) as
+CREATE OR REPLACE FUNCTION entries_sums_for_employee_with_project(employee_id int, from_date date, to_date date)
+returns table (work_date date, employeeId int, project text, hours numeric) as
 $$
 begin
 return query (
-SELECT 
-    time_entry.date,
-    time_entry.employee
-    SUM(time_entry.minutes)/60.0 AS hours,
-    time_entry.project,
+SELECT
+  dates.date,
+  time_entry.employee,
+  time_entry.project,
+  SUM(time_entry.minutes)/60.0 AS hours
 FROM
-    time_entry JOIN employees ON time_entry.employee = employees.id
-WHERE
-    date >= from_date 
-    AND date <= to_date
-    AND employees.id = employee_id
+  generate_series(from_date, to_date, '1 day'::interval) as dates 
+  LEFT JOIN time_entry ON (dates.date = time_entry.date AND time_entry.employee = employee_id)
 GROUP BY
-	time_entry.date,
-	time_entry.project,
-	employee
+  dates.date,
+  time_entry.project,
+  time_entry.employee
 );
 end
 $$ LANGUAGE plpgsql;
