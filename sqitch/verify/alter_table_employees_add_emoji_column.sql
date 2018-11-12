@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT emojio FROM employees;
+SELECT emoji FROM employees;
 
 ROLLBACK;
