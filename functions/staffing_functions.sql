@@ -158,3 +158,30 @@ END
 $$ LANGUAGE plpgsql;
 
 COMMIT;
+
+CREATE OR REPLACE FUNCTION employees_on_projects(from_date date, to_date date)
+RETURNS TABLE (customer_id text, customer_name text, first_name text, last_name text, id int, emoji text) AS
+$$
+BEGIN
+return query (
+SELECT
+  customers.id as customer,
+  customers.name,
+  employees.first_name,
+  employees.last_name,
+  employees.id,
+  employees.emoji::text
+FROM employees
+  JOIN staffing ON staffing.employee = employees.id
+  JOIN projects ON staffing.project = projects.id
+  JOIN customers ON projects.customer = customers.id
+WHERE
+  projects.billable = 'billable' AND
+  staffing.date > from_date  AND
+  staffing.date < to_date
+GROUP BY
+  employees.id,
+  customers.id
+);
+END
+$$ language plpgsql;
