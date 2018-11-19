@@ -46,3 +46,17 @@ begin
   );
 end;
 $function$
+
+-- Accumulated hours from entries only, grouped by projects
+CREATE OR REPLACE FUNCTION accumulated_entries_on_project(from_date date, to_date date)
+RETURNS TABLE (hours bigint, project text, billable time_status, name text) AS
+$$
+BEGIN
+RETURN QUERY (
+SELECT SUM(minutes)/60 as hours, projects.id, projects.billable, projects.name
+FROM time_entry JOIN projects ON time_entry.project = projects.id
+WHERE date >= from_date AND date <= to_date
+GROUP BY projects.id, projects.billable
+);
+END
+$$ language plpgsql;
