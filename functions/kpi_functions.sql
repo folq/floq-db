@@ -706,4 +706,37 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION monthly_balance_summary(in_start_date date, in_end_date date)
+RETURNS TABLE (
+	from_date date,
+	to_date date,
+	invoice_money double precision,
+	invoice_balance_minutes double precision,
+	time_entry_minutes double precision,
+	write_off_minutes double precision,
+	expense_money double precision,
+	subcontractor_money double precision
+) AS
+$$
+BEGIN
+RETURN QUERY (
+    SELECT
+    	month_dates.from_date as from_date,
+    	month_dates.to_date as to_date,
+		SUM(invoice_balance_money)::double precision AS invoice_money,
+		SUM(hpp.invoice_balance_minutes)::double precision AS invoice_balance_minutes,
+		SUM(hpp.time_entry_minutes)::double precision AS time_entry_minutes,
+		SUM(hpp.write_off_minutes)::double precision AS write_off_minutes,
+		SUM(hpp.expense_money)::double precision AS expense_money,
+		SUM(hpp.subcontractor_money)::double precision AS subcontractor_money
+    FROM
+        (
+            SELECT * FROM month_dates(in_start_date, in_end_date, ('1 month')::interval)
+        ) month_dates,
+        hours_per_project(month_dates.from_date, month_dates.to_date) AS hpp
+    GROUP BY month_dates.from_date, month_dates.to_date
+    );
+end
+$$ LANGUAGE plpgsql;
+
 
