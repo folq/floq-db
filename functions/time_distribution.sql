@@ -8,11 +8,9 @@ BEGIN
     SUM(CASE WHEN billable = 'nonbillable' then 1 else 0 end)*7.5::double precision as nonbillable_hours,
     SUM(CASE WHEN billable = 'unavailable' then 1 else 0 end)*7.5::double precision as unavailable_hours
   FROM
-    staffing as s,
-    projects as p
+    time_entry JOIN projects ON time_entry.project = projects.id
   WHERE
-    s.project = p.id AND
-    s.date BETWEEN start_date AND end_date
+    time_entry.date BETWEEN start_date AND end_date
   );
 END
 $$ LANGUAGE plpgsql;
