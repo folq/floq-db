@@ -4,9 +4,9 @@ $$
 BEGIN
   RETURN QUERY (
   SELECT
-    SUM(CASE WHEN billable = 'billable' then 1 else 0 end)*7.5::double precision as billable_hours,
-    SUM(CASE WHEN billable = 'nonbillable' then 1 else 0 end)*7.5::double precision as nonbillable_hours,
-    SUM(CASE WHEN billable = 'unavailable' then 1 else 0 end)*7.5::double precision as unavailable_hours
+    SUM(CASE WHEN billable = 'billable' then time_entry.minutes else 0 end)/60::double precision as billable_hours,
+    SUM(CASE WHEN billable = 'nonbillable' then time_entry.minutes else 0 end)/60::double precision as nonbillable_hours,
+    SUM(CASE WHEN billable = 'unavailable' then time_entry.minutes else 0 end)/60::double precision as unavailable_hours
   FROM
     time_entry JOIN projects ON time_entry.project = projects.id
   WHERE
