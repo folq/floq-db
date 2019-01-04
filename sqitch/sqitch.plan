@@ -73,3 +73,4 @@ alter_table_projects_add_deductable_flag 2018-09-14T13:35:46Z Sigurd Grøneng <s
 alter_reporting_visibility_remove_next_week_and_add_unavailable_hours 2018-10-03T09:36:11Z Ole Christer Selvig <ocselvig@Oles-MacBook-Pro.local> # Modify reporting_visibility TABLE; remove next_week_billable_hours and next_week_available_hours, and add unavailable_hours
 add_talks_table 2018-10-09T07:49:56Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new talks table
 alter_table_employees_add_emoji_column 2018-11-12T09:28:47Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new coumn emoji for employees
+alter_table_employeees_add_bio_and_role_column 2018-12-18T13:08:50Z Ole Christer Selvig <ocselvig@Oles-MacBook-Pro.local> # Modify employees TABLE; add bio and role column
