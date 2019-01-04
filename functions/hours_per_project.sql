@@ -1,6 +1,5 @@
 CREATE OR REPLACE FUNCTION public.hours_per_project(in_start_date date, in_end_date date)
  RETURNS TABLE(project text, status text, time_entry_minutes integer, invoice_balance_minutes integer, invoice_balance_money double precision, write_off_minutes integer, expense_money double precision, subcontractor_money double precision, start_date date, end_date date)
- LANGUAGE plpgsql
  STABLE
 AS $function$
 begin
@@ -45,4 +44,17 @@ begin
     order by p.id
   );
 end;
-$function$
+$function$ LANGUAGE plpgsql;
+-- Accumulated hours from time entries only, grouped by projects
+CREATE OR REPLACE FUNCTION public.accumulated_entries_on_project(from_date date, to_date date)
+RETURNS TABLE (hours bigint, project text, billable time_status, name text) AS
+$$
+BEGIN
+RETURN QUERY (
+  SELECT SUM(minutes)/60 as hours, projects.id, projects.billable, projects.name
+  FROM time_entry JOIN projects ON time_entry.project = projects.id
+  WHERE date >= from_date AND date <= to_date
+  GROUP BY projects.id, projects.billable
+);
+END
+$$ language plpgsql;
