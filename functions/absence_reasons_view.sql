@@ -3,6 +3,7 @@ CREATE OR REPLACE FUNCTION is_absence_reason(reason text)
 $$
 BEGIN
   RETURN (    reason = 'FER1000'
+           OR reason = 'SYK1000'
            OR reason = 'SYK1001'
            OR reason = 'SYK1002'
            OR reason = 'PER1000'
