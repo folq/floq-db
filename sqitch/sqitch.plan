@@ -75,3 +75,4 @@ add_talks_table 2018-10-09T07:49:56Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro
 alter_table_employees_add_emoji_column 2018-11-12T09:28:47Z Sigurd Grøneng <sigurd@Sigurds-MacBook-Pro.local> # Add a new coumn emoji for employees
 alter_table_employeees_add_bio_and_role_column 2018-12-18T13:08:50Z Ole Christer Selvig <ocselvig@Oles-MacBook-Pro.local> # Modify employees TABLE; add bio and role column
 absence_spent 2018-12-03T09:49:01Z Kristiane Alvarstein Westgård <kristianeaw@Kristianes-MacBook-Pro.local> # Add new absence_spent view
+add_timelock_table 2019-10-14T10:48:07Z Michael Eikeland <michaeleikeland@Michaels-MBP.localdomain> # Add timelock table
