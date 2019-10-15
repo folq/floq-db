@@ -4,11 +4,13 @@
 BEGIN;
 
 CREATE TABLE timelock (
-  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4(),
-  employee integer NOT NULL REFERENCES employees(id),
-  commit_date DATE NOT NULL, -- The commit_date column specifies which date and all previous date you have comitted / are done registering hours.
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  UNIQUE (employee, created)
+  id SERIAL PRIMARY KEY,
+  employee INTEGER NOT NULL REFERENCES employees(id),
+  creator INTEGER NOT NULL REFERENCES employees(id),
+  commit_date DATE NOT NULL,
+  created TIMESTAMP WITHOUT TIME ZONE DEFAULT now()
 );
+
+CREATE INDEX timelock_commit_date_index ON timelock USING BRIN (commit_date);
 
 COMMIT;
