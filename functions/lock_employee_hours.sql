@@ -6,7 +6,7 @@ AS $function$
     INSERT INTO
         timelock (employee, creator, commit_date)
     SELECT DISTINCT
-        te.employee, te.employee, in_commit
+        te.employee, in_creator, in_commit
     FROM time_entry AS te
     WHERE te.project = in_project AND te.date >= in_start AND te.date <= in_end;
   END;
