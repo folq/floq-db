@@ -2,7 +2,8 @@
 
 BEGIN;
 
-DROP INDEX timelock_commit_date_index;
-DROP TABLE timelock;
+DROP INDEX timelock_events_commit_date_index;
+DROP MATERIALIZED VIEW timelock_view;
+DROP TABLE timelock_events;
 
 COMMIT;

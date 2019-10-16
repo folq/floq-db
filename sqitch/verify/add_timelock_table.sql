@@ -2,6 +2,7 @@
 
 BEGIN;
 
-SELECT * FROM timelock WHERE false;
+SELECT * FROM timelock_events WHERE false;
+SELECT * FROM timelock_view WHERE false;
 
 ROLLBACK;

@@ -4,10 +4,13 @@ CREATE OR REPLACE FUNCTION public.lock_employee_hours(in_project text, in_start 
 AS $function$
   BEGIN
     INSERT INTO
-        timelock (employee, creator, commit_date)
+        timelock_events (creator, employee, commit_date)
     SELECT DISTINCT
-        te.employee, in_creator, in_commit
+      in_creator, te.employee, in_commit
     FROM time_entry AS te
-    WHERE te.project = in_project AND te.date >= in_start AND te.date <= in_end;
+    WHERE te.project = in_project AND te.date >= in_start AND te.date <= in_end AND NOT EXISTS (
+      SELECT * FROM timelock_view WHERE employee = te.employee AND commit_date = in_commit
+    );
+    REFRESH MATERIALIZED VIEW CONCURRENTLY timelock_view;
   END;
 $function$
