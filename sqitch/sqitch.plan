@@ -78,3 +78,4 @@ absence_spent 2018-12-03T09:49:01Z Kristiane Alvarstein Westgård <kristianeaw@K
 add_timelock_table 2019-10-14T10:48:07Z Michael Eikeland <michaeleikeland@Michaels-MBP.localdomain> # Add timelock table
 project_sdg 2019-10-10T11:35:42Z Michael Eikeland <michaeleikeland@Michaels-MBP.localdomain> # Create project_sdg table
 employee_role 2019-10-30T13:01:24Z Trond,,, <trond@trond-ubuntu> # Adding table employee_role
+add_employee_user 2019-10-30T13:28:19Z Trond,,, <trond@trond-ubuntu> # Adding new user employee
