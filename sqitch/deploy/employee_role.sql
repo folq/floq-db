@@ -1,3 +1,5 @@
+-- Deploy floq:add_employee_role to pg
+
 CREATE TYPE employee_role_type AS ENUM ('admin');
 
 CREATE TABLE employee_role
