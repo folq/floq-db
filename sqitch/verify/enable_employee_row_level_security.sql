@@ -2,12 +2,13 @@
 
 BEGIN;
 
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'absence';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'employees';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'paid_overtime';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'time_entry';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'holidays';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'timelock_events';
-ASSERT SELECT COUNT(*) = 2 FROM pg_catalog.pg_policies WHERE tablename = 'vacation_days';
+-- divide-by-zero if policy does not exist
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'absence';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'employees';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'paid_overtime';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'time_entry';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'holidays';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'timelock_events';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'vacation_days';
 
 ROLLBACK;

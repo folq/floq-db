@@ -2,7 +2,8 @@
 
 BEGIN;
 
-CREATE USER employee ENCRYPTED PASSWORD :'employee-password';
+-- Set password before deploying and then remember to NOT COMMIT the change!
+CREATE USER employee ENCRYPTED PASSWORD NULL;
 GRANT ALL PRIVILEGES ON SCHEMA public TO employee;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to employee;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public to employee;

@@ -2,9 +2,8 @@
 
 BEGIN;
 
-ASSERT SELECT COUNT(*) = 1
-FROM pg_catalog.pg_user
-WHERE username = 'employee'
-  AND password != NULL;
+-- divide-by-zero if user does not exist
+SELECT 1/COUNT(*) FROM pg_catalog.pg_user
+WHERE usename = 'employee' AND passwd IS NOT NULL;
 
 ROLLBACK;
