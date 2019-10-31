@@ -80,3 +80,4 @@ project_sdg 2019-10-10T11:35:42Z Michael Eikeland <michaeleikeland@Michaels-MBP.
 employee_role 2019-10-30T13:01:24Z Trond,,, <trond@trond-ubuntu> # Adding table employee_role
 add_employee_user 2019-10-30T13:28:19Z Trond,,, <trond@trond-ubuntu> # Adding new user employee
 enable_employee_row_level_security 2019-10-30T13:21:20Z Trond,,, <trond@trond-ubuntu> # Enabling row level security for employee user
+drop_timelock_view 2019-10-31T12:27:09Z Trond,,, <trond@trond-ubuntu> # Dropping materialized view timelock_view
