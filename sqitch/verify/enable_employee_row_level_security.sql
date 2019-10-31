@@ -8,6 +8,7 @@ SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'employees';
 SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'paid_overtime';
 SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'time_entry';
 SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'holidays';
+SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'invoice_balance';
 SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'timelock_events';
 SELECT 1/COUNT(*) FROM pg_catalog.pg_policies WHERE tablename = 'vacation_days';
 

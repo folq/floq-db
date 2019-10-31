@@ -65,7 +65,6 @@ SELECT enable_default_row_level_security('paid_overtime',  'check_employee_write
 SELECT enable_default_row_level_security('time_entry',  'check_employee_write_access(employee)');
 
 SELECT enable_default_row_level_security('holidays', 'check_admin_write_access()');
+SELECT enable_default_row_level_security('invoice_balance', 'check_admin_write_access()');
 SELECT enable_default_row_level_security('timelock_events', 'check_admin_write_access()');
 SELECT enable_default_row_level_security('vacation_days', 'check_admin_write_access()');
-
-DROP FUNCTION enable_default_row_level_security(REGCLASS, TEXT);

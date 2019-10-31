@@ -13,9 +13,15 @@ DROP POLICY IF EXISTS time_entry_write_policy ON time_entry;
 
 DROP POLICY IF EXISTS holidays_select_policy ON holidays;
 DROP POLICY IF EXISTS holidays_write_policy ON holidays;
+DROP POLICY IF EXISTS invoice_balance_select_policy ON invoice_balance;
+DROP POLICY IF EXISTS invoice_balance_write_policy ON invoice_balance;
 DROP POLICY IF EXISTS timelock_events_select_policy ON timelock_events;
 DROP POLICY IF EXISTS timelock_events_write_policy ON timelock_events;
 DROP POLICY IF EXISTS vacation_days_select_policy ON vacation_days;
 DROP POLICY IF EXISTS vacation_days_write_policy ON vacation_days;
+
+DROP FUNCTION check_employee_write_access(INTEGER);
+DROP FUNCTION check_admin_write_access();
+DROP FUNCTION enable_default_row_level_security(REGCLASS, TEXT);
 
 COMMIT;
