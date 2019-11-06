@@ -13,6 +13,10 @@ case "$1" in
          HOST=floq.caawuzisqucy.eu-central-1.rds.amazonaws.com
          shift
          ;;
+     -p|--prod-folq)
+         HOST=floq-folq-prod.caawuzisqucy.eu-central-1.rds.amazonaws.com
+         shift
+         ;;
      *)
          echo "No environment specified"
          exit 3
