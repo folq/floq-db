@@ -1,5 +1,28 @@
 For now we have to different ways to alter the database:
 
+# Local development install guide
+
+The following recipe is for installing a dockerized local postgres with an up-to-date schema.
+
+
+``` sh
+make hverdagsverktoydb
+```
+
+You might have to repeat the following commands a few times to get it up and running :shrug:
+
+```sh
+cd sqitch
+./sqitch deploy --target dev --verify
+cd ../functions
+./deploy.sh --dev
+cd ..
+```
+
+
+You also have to set a password in the `add_employee_user.sql` file, when you get an error about it.
+
+
 ### Sqitch
 Should be used for all tables, and everything we need for the tables to work: custom types, extensions ++. Can also be used for functions needed in migrations.
 
@@ -13,3 +36,6 @@ Hopefully we can use some other tool (pgRebase?) to maintain the functions in a 
 
 ### Hooks
 Please make sure to read [hooks/README.md](hooks/README.md) to ensure that no passwords are committed.
+
+
+
