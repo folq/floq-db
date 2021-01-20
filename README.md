@@ -8,7 +8,7 @@ The following recipe is for running a dockerized local postgres with an up-to-da
 make hverdagsverktoydb
 ```
 
-You might have to repeat the following commands a few times to get it up and running :shrug:
+You might have to repeat the following commands a few times to get the schema deployed :shrug:
 
 ```sh
 cd sqitch
