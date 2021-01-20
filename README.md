@@ -1,6 +1,5 @@
-For now we have to different ways to alter the database:
 
-# Local development install guide
+## Local development install guide
 
 The following recipe is for installing a dockerized local postgres with an up-to-date schema.
 
@@ -22,6 +21,12 @@ cd ..
 
 You also have to set a password in the `add_employee_user.sql` file, when you get an error about it.
 
+The same password needs to be set in `postgrest.conf` where it says `<PasswordGoesHere>`
+
+Next you need to install `postgrest`, and then run it in this directory with `postgrest postgrest.conf`
+
+
+## For now we have two different ways to alter the database
 
 ### Sqitch
 Should be used for all tables, and everything we need for the tables to work: custom types, extensions ++. Can also be used for functions needed in migrations.
