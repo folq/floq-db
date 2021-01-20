@@ -25,6 +25,13 @@ The same password needs to be set in `postgrest.conf` where it says `<PasswordGo
 
 Next you need to install `postgrest`, and then run it in this directory with `postgrest postgrest.conf`
 
+Lastly, you need to add some data to the database to be able to log in with the floq frontend app:
+
+``` plsql
+insert into employees(id,first_name,last_name,title,phone,email,gender,birth_date)
+values ('1234', 'Navn', 'Navnesonn', 'Teknolog', '12121212', 'yourEmailAddressHere@folq.no', 'other', '1910-01-01');
+
+```
 
 ## For now we have two different ways to alter the database
 
