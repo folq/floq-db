@@ -1,7 +1,7 @@
 
 ## Local development install guide
 
-The following recipe is for installing a dockerized local postgres with an up-to-date schema.
+The following recipe is for running a dockerized local postgres with an up-to-date schema.
 
 
 ``` sh
